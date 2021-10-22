@@ -1,0 +1,5 @@
+git+https://github.com/Rapptz/discord.py
+python-dotenv==0.15.0
+async-timeout==3.0.1
+requests==2.25.1
+selenium==3.141.0
