@@ -12,7 +12,7 @@ client.remove_command('help')
 #Runs when Bot is ready
 @client.event
 async def on_ready():
-	global spawn_channel, output_channel, motolist, spexlist, jefflist, spam_channel, command_channel, winston_status, incense_channel,users
+	global spawn_channel, output_channel, motolist, spexlist, jefflist, spam_channel, command_channel, winston_status, incense_channel, users
 	global moto_id, jeff_id, spex_id, poketwo_id
 
 	#Initialize global variables
@@ -62,7 +62,8 @@ async def help(ctx):
 	e.add_field(name='.clearList', value='Clears user\'s list of pokemon', inline=False)
 	e.add_field(name='.showList', value='Shows user\'s list of pokemon', inline=False)
 	e.add_field(name='.numbers(start, stop)', value='Sends numbers from start till end', inline=False)
-	e.add_field(name='.spam(Number [default = 5], message [default = \'spam\'])', value='Spam', inline=False)
+	e.add_field(name='.spam(isSession [default = False], number of messages [default = 5], message [default = \'spam\'])', value='Spam', inline=False)
+	e.add_field(name='.stopSpam', value='Stops spam', inline=False)
 	e.add_field(name='.stopWinston', value='Stops Winston', inline=False)
 	e.add_field(name='.getImages(Number of messages to check, channel id) *Can only be used by MaNameEJeff', value='Gets images from the number of messages specified in channel', inline=False)
 
@@ -73,6 +74,13 @@ async def checkWinstonStatus():
 	global winston_status
 	if ((await command_channel.history(limit=1).flatten())[0].content == 'online'):
 		winston_status = True
+
+@client.event
+async def on_command_error(ctx, error):
+	if(isinstance(error, commands.CommandNotFound)):
+		await ctx.send(f"{error}, for a list of commands type \".help\"")
+	else:
+		await ctx.send(f"Error: {error}")
 
 #Download images of pokemon in spawn channel
 @client.command()
@@ -270,6 +278,16 @@ async def spam(ctx, number=5, text = "spam"):
 	else:
 		await ctx.send('Sorry Winston seems to be offline...')
 
+@client.command()
+async def stopSpam(ctx):
+	await ctx.send("Stopping session")
+	await command_channel.send("Stop Spam")
+
+#Exception handling
+@spam.error
+async def spam_error(ctx, error):
+	await ctx.send(f"{error} The syntax is spam[number, message]")
+
 #Send numbers from start till end
 @client.command()
 async def numbers(ctx, start=0, end=0):
@@ -300,12 +318,12 @@ async def stopWinston(ctx):
 
 	#Send prompt, clear messages in Winston's server and exit
 	await ctx.send('Closing Winston')
+	await command_channel.send('Leave')
 	await command_channel.purge(limit=1000)
 	await output_channel.purge(limit=1000)
 	await spam_channel.purge(limit=1000)
-	await command_channel.send('Leave')
 	winston_status = False
 	await ctx.send('Winston is now offline')
 
 #Run the bot
-client.run(os.environ['TOKEN'])
+client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.O0BRik2gQiRw_NtyvS8j51q1dh8")#os.environ['TOKEN'])

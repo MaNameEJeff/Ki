@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
 from AutomatedAccount import AutomatedAccount
@@ -24,7 +24,7 @@ async def on_ready():
 			command_channel = text_channel
 
 	Ki_id = 790492561348886570
-
+	
 	await command_channel.send("online")
 	print('Ready to serve')
 
@@ -35,32 +35,45 @@ async def on_message(message):
 	if ((message.author.id == Ki_id) and (message.channel.id == command_channel.id)):
 		if(message.content == 'Leave'):
 			await leave()
+		elif(message.content == 'Stop Spam'):
+			spam.cancel()		
 
 	#Check if message is from Ki and if it is a pokemon name
-	if ((message.author.id == Ki_id) and (message.channel.id == pokemon_channel.id)):
+	if ((message.channel.id == pokemon_channel.id)):
 		name = (await pokemon_channel.history(limit=1).flatten())[0].content
+		spam.stop()
 
 		#Ask krenko to catch the pokemon
 		krenko.changeChannel('#pokemon-spawn')
 		krenko.say('?c ' + name, krenko)
+		krenko.changeChannel("#spam")
+		spam.restart()
 
 	#Check if message is from Ki and if it is a spam command
-	if ((message.author.id == Ki_id) and (message.channel.id == spam_channel.id)):
-		l = (await spam_channel.history(limit=1).flatten())[0].content
-		count = (l.split(' '))[0]
-		message = (l.split(' '))[1]
-
-		#Ask krenko to spam
+	if ((message.channel.id == spam_channel.id)):
+		l = ((await spam_channel.history(limit=1).flatten())[0].content).split(" ")
+		flag = l[0]
+		count = l[1]
+		message = l[2]
 		krenko.changeChannel('#spam')
 		krenko.rate_limited = False
 
-		for i in range(int(count)):
+		if(flag == "False"):
+			for _ in range(int(count)):
+				krenko.say(message, krenko)
+			return
 
-			if(krenko.rate_limited == True):
-				await command_channel.send('Rate Limited')
-				return
+		#Ask krenko to spam
+		spam.start()
+
+@tasks.loop(seconds=3)
+async def spam():
+
+	if(krenko.rate_limited == True):
+		await command_channel.send('Rate Limited')
+		return
 				
-			krenko.say(message, krenko)
+	krenko.say("spam", krenko)
 
 #Close krenko and self
 async def leave():
