@@ -12,7 +12,7 @@ krenko = AutomatedAccount()
 
 @client.event
 async def on_ready():
-	global pokemon_channel, spam_channel, command_channel, Ki_id
+	global pokemon_channel, spam_channel, command_channel, Ki_id, spam_message
 
 	#Initialize global variables
 	for text_channel in client.guilds[0].text_channels:
@@ -24,12 +24,15 @@ async def on_ready():
 			command_channel = text_channel
 
 	Ki_id = 790492561348886570
+	spam_message = "spam"
 	
 	await command_channel.send("online")
 	print('Ready to serve')
 
 @client.event
 async def on_message(message):
+
+	global spam_message
 
 	#Check if message is from Ki and if it is a command
 	if ((message.author.id == Ki_id) and (message.channel.id == command_channel.id)):
@@ -39,7 +42,7 @@ async def on_message(message):
 			spam.cancel()		
 
 	#Check if message is from Ki and if it is a pokemon name
-	if ((message.channel.id == pokemon_channel.id)):
+	if ((message.author.id == Ki_id) and (message.channel.id == pokemon_channel.id)):
 		name = (await pokemon_channel.history(limit=1).flatten())[0].content
 		spam.stop()
 
@@ -50,13 +53,14 @@ async def on_message(message):
 		spam.restart()
 
 	#Check if message is from Ki and if it is a spam command
-	if ((message.channel.id == spam_channel.id)):
+	if ((message.author.id == Ki_id) and (message.channel.id == spam_channel.id)):
 		l = ((await spam_channel.history(limit=1).flatten())[0].content).split(" ")
-		flag = l[0]
-		count = l[1]
-		message = l[2]
+		count = l[0]
+		message = l[1]
+		flag = l[2]
 		krenko.changeChannel('#spam')
 		krenko.rate_limited = False
+		spam_message = message
 
 		if(flag == "False"):
 			for _ in range(int(count)):
@@ -66,6 +70,7 @@ async def on_message(message):
 		#Ask krenko to spam
 		spam.start()
 
+#Start a background task of asking Winston to spam
 @tasks.loop(seconds=3)
 async def spam():
 
@@ -73,7 +78,7 @@ async def spam():
 		await command_channel.send('Rate Limited')
 		return
 				
-	krenko.say("spam", krenko)
+	krenko.say(spam_message, krenko)
 
 #Close krenko and self
 async def leave():

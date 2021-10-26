@@ -62,7 +62,7 @@ async def help(ctx):
 	e.add_field(name='.clearList', value='Clears user\'s list of pokemon', inline=False)
 	e.add_field(name='.showList', value='Shows user\'s list of pokemon', inline=False)
 	e.add_field(name='.numbers(start, stop)', value='Sends numbers from start till end', inline=False)
-	e.add_field(name='.spam(isSession [default = False], number of messages [default = 5], message [default = \'spam\'])', value='Spam', inline=False)
+	e.add_field(name='.spam(number of messages [default = 5], message [default = \'spam\'], is_session [default = False])', value='Spam', inline=False)
 	e.add_field(name='.stopSpam', value='Stops spam', inline=False)
 	e.add_field(name='.stopWinston', value='Stops Winston', inline=False)
 	e.add_field(name='.getImages(Number of messages to check, channel id) *Can only be used by MaNameEJeff', value='Gets images from the number of messages specified in channel', inline=False)
@@ -75,6 +75,7 @@ async def checkWinstonStatus():
 	if ((await command_channel.history(limit=1).flatten())[0].content == 'online'):
 		winston_status = True
 
+#Handle the command not found exception
 @client.event
 async def on_command_error(ctx, error):
 	if(isinstance(error, commands.CommandNotFound)):
@@ -267,26 +268,32 @@ async def showList(ctx):
 		await ctx.send(i.content)
 #Spam
 @client.command()
-async def spam(ctx, number=5, text = "spam"):
+async def spam(ctx, number=5, text = "spam", is_session=False):
 
 	if(winston_status == False):
 		await checkWinstonStatus()
 
-	if(winston_status):
+	if((winston_status) and (is_session == False)):
 		await ctx.send(f'Spamming {number} messages...')
-		await spam_channel.send(str(number) + " " + text)
+		await spam_channel.send(str(number) + " " + text + str(is_session))
+
+	elif((winston_status) and (is_session)):
+		await ctx.send("Starting a session")
+		await spam_channel.send(str(number) + " " + text + " " + str(is_session))
+
 	else:
 		await ctx.send('Sorry Winston seems to be offline...')
 
+#Stop Winston spamming
 @client.command()
 async def stopSpam(ctx):
 	await ctx.send("Stopping session")
 	await command_channel.send("Stop Spam")
 
-#Exception handling
+#Handle invalid arguments
 @spam.error
 async def spam_error(ctx, error):
-	await ctx.send(f"{error} The syntax is spam[number, message]")
+	await ctx.send(f"{error} The syntax is spam[number, message, is_session]")
 
 #Send numbers from start till end
 @client.command()
@@ -326,4 +333,4 @@ async def stopWinston(ctx):
 	await ctx.send('Winston is now offline')
 
 #Run the bot
-client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.O0BRik2gQiRw_NtyvS8j51q1dh8")#os.environ['TOKEN'])
+client.run(os.environ['TOKEN'])
