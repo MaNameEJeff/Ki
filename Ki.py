@@ -52,6 +52,22 @@ async def on_ready():
 
 	print('ready')
 
+	client.var_spawn_channel = spawn_channel
+	client.var_output_channel = output_channel
+	client.var_spam_channel = spam_channel
+	client.var_command_channel = command_channel
+	client.var_incense_channel = incense_channel
+	client.var_motolist = motolist
+	client.var_spexlist = spexlist
+	client.var_jefflist = jefflist
+	client.var_winston_status = winston_status
+	client.var_users = users
+	client.var_moto_id = moto_id
+	client.var_jeff_id = jeff_id
+	client.var_spex_id = spex_id
+	client.var_poketwo_id = poketwo_id
+
+
 #Custom Help command
 @client.command()
 async def help(ctx):
@@ -74,6 +90,7 @@ async def checkWinstonStatus():
 	global winston_status
 	if ((await command_channel.history(limit=1).flatten())[0].content == 'online'):
 		winston_status = True
+		client.var_winston_status = True
 
 #Handle the command not found exception
 @client.event
@@ -82,45 +99,6 @@ async def on_command_error(ctx, error):
 		await ctx.send(f"{error}, for a list of commands type \".help\"")
 	else:
 		await ctx.send(f"Error: {error}")
-
-#Download images of pokemon in spawn channel
-@client.command()
-async def getImages(ctx, number_of_messages, channel_id):
-
-	#Check if message author is Jeff or not
-	if(ctx.author.id != jeff_id):
-		await ctx.send('Only MaNameEJeff can use this')
-		return
-
-	#Check respective channel
-	if (int(channel_id) == incense_channel.id):
-		image_channel = incense_channel
-	elif (int(channel_id) == spawn_channel.id):
-		image_channel = spawn_channel
-
-	#Get images and store them as a list in pokemon
-	await ctx.send('Downloading images...')
-	pokemon = await image_channel.history(limit=int(number_of_messages)).flatten()
-	j = 0
-	for message in pokemon:
-		if(message.author.id != poketwo_id):
-			continue
-		try:
-			#Check if it is a spawn message
-			if ((message.embeds[0].to_dict()['title'] == 'A wild pokémon has appeared!') or ('A new wild pokémon has appeared!' in message.embeds[0].to_dict()['title'])):
-	
-				#Get URL from image
-				pokemon_URL = message.embeds[0].image.url
-
-				#Download image to specified path
-				img_args = "wget -O {0} {1}".format('E:/Ki/Images/' + str(j) + '.jpg', pokemon_URL)
-				j = j+1
-				os.system(img_args)
-
-		except IndexError:
-			continue
-
-	await ctx.send('Done')
 
 #Runs whenever a message is posted on Discord
 @client.event
@@ -193,108 +171,6 @@ async def check(name):
 
 	return uncaught
 
-#Makes List of Pokemon
-@client.command()
-async def makeList(ctx):
-
-	#Function to check if message is from Poketwo
-	def check(m):
-		return m.author.id == poketwo_id
-
-	list_of_pokemon = []
-	count = 0
-
-	while (True):
-
-		if(count == 0):
-			await ctx.send('Open list of pokemon')
-		else:
-			await ctx.send('Go to next page')
-
-		#Get message from discord and check if it is from Poketwo
-		message = await client.wait_for('message', check=check)
-
-		#Get embeds from message
-		message_content = message.embeds[0]
-
-		#Get the number of Pokemon from footer
-		if(count == 0):
-			number_of_pokemon_string = ((((message_content.to_dict()['footer'])['text']).split(' '))[4])
-			number_of_pokemon = int(number_of_pokemon_string[:number_of_pokemon_string.index('.')])
-
-		#Get the names of pokemon and append them to list_of_pokemon
-		list_of_embeds = message_content.to_dict()['fields']
-
-		for i in range(len(list_of_embeds)-1):
-			list_of_pokemon.append((list_of_embeds[i]['name'])[list_of_embeds[i]['name'].index(" "):list_of_embeds[i]['name'].index(" #")])		
-
-		count += 1
-
-		#If count is greater than number of pages in list stop
-		if(count > int(number_of_pokemon/20)):
-			break
-
-	#Save user's list in respective channel
-	channel = users.get(ctx.author.id)
-	for i in list_of_pokemon:
-		await channel.send(i)
-
-	await ctx.send(f'{ctx.author.name}, your list of pokemon is successfully stored')	
-
-#Clears user's list
-@client.command()
-async def clearList(ctx):
-
-	await ctx.send("Clearing list...")
-
-	#Clear respective user's saved list
-	channel = users.get(ctx.author.id)
-	await channel.purge(limit=1000)
-	await ctx.send(f'{ctx.author.name} your list is cleared')
-
-#Shows user's saved list of pokemon_spawn_message					
-@client.command()
-async def showList(ctx):
-	
-	channel = users.get(ctx.author.id)
-	l = await channel.history(limit = 1000).flatten()
-
-	if(len(l) == 0):
-		await ctx.send("list is empty")
-		return
-
-	#Send each pokemon name as a seperate message
-	for i in l:
-		await ctx.send(i.content)
-#Spam
-@client.command()
-async def spam(ctx, number=5, text = "spam", is_session=False):
-
-	if(winston_status == False):
-		await checkWinstonStatus()
-
-	if((winston_status) and (is_session == False)):
-		await ctx.send(f'Spamming {number} messages...')
-		await spam_channel.send(str(number) + " " + text + str(is_session))
-
-	elif((winston_status) and (is_session)):
-		await ctx.send("Starting a session")
-		await spam_channel.send(str(number) + " " + text + " " + str(is_session))
-
-	else:
-		await ctx.send('Sorry Winston seems to be offline...')
-
-#Stop Winston spamming
-@client.command()
-async def stopSpam(ctx):
-	await ctx.send("Stopping session")
-	await command_channel.send("Stop Spam")
-
-#Handle invalid arguments
-@spam.error
-async def spam_error(ctx, error):
-	await ctx.send(f"{error} The syntax is spam[number, message, is_session]")
-
 #Send numbers from start till end
 @client.command()
 async def numbers(ctx, start=0, end=0):
@@ -309,28 +185,10 @@ async def numbers(ctx, start=0, end=0):
 
 	await ctx.send(s)
 
-#Close Muxus
-@client.command()
-async def stopWinston(ctx):
+for filename in os.listdir("./cogs"):
+	if filename.endswith(".py"):
+		client.load_extension(f"cogs.{filename[:-3]}")
 
-	global winston_status
-
-	#Check winston status and if he's offline exit
-	if(winston_status == False):
-		await checkWinstonStatus()
-
-	if(winston_status == False):
-		await ctx.send('Winston is already offline')
-		return
-
-	#Send prompt, clear messages in Winston's server and exit
-	await ctx.send('Closing Winston')
-	await command_channel.send('Leave')
-	await command_channel.purge(limit=1000)
-	await output_channel.purge(limit=1000)
-	await spam_channel.purge(limit=1000)
-	winston_status = False
-	await ctx.send('Winston is now offline')
 
 #Run the bot
-client.run(os.environ['TOKEN'])
+client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.Ky_MKMB5hxr7ZDQYQQBDVPwHJoo")#os.environ['TOKEN'])

@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
 from AutomatedAccount import AutomatedAccount
+from datetime import datetime
 
 client = commands.Bot(command_prefix = '?')
 
