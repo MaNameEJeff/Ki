@@ -43,9 +43,7 @@ async def on_ready():
 	client.poketwo_id = 716390085896962058
 
 	client.ki_users = {client.moto_id: client.motolist, client.jeff_id: client.jefflist, client.spex_id: client.spexlist}
-
 	client.winston_status = False
-
 	checkWinstonStatus.start()
 
 	print('ready')
@@ -71,24 +69,29 @@ async def help(ctx):
 #Checks if Winston is online or not
 @tasks.loop(hours=1)
 async def checkWinstonStatus():
-	if ((await client.command_channel.history(limit=1).flatten())[0].content == 'online'):
+
+	if ((client.winston_status == False) and ((await client.command_channel.history(limit=1).flatten())[0].content == 'online')):
 		client.winston_status = True
-	else
-		client.winston_status = False
 
 #Checks if Winston is online or not
 @client.command()
 async def check_winston_status(ctx):
 	checkWinstonStatus.restart()
-	await ctx.send(f"Winston is online? {client.winston_status}")
+
+	time.sleep(2)
+
+	if (client.winston_status == True):
+		await ctx.send("Winston is online")
+	else:
+		await ctx.send("Winston is offline")
 
 #Handle the command not found exception
 @client.event
 async def on_command_error(ctx, error):
 	if(isinstance(error, commands.CommandNotFound)):
 		await ctx.send(f"{error}, for a list of commands type \".help\"")
-	#else:
-	#	await ctx.send(f"Error: {error}")
+	else:
+		await ctx.send(f"Error: {error}")
 
 #Runs whenever a message is posted on Discord
 @client.event
@@ -178,4 +181,4 @@ for filename in os.listdir("./cogs"):
 
 
 #Run the bot
-client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.Ky_MKMB5hxr7ZDQYQQBDVPwHJoo")#os.environ['TOKEN'])
+client.run(os.environ['TOKEN'])

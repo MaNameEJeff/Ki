@@ -39,8 +39,6 @@ class winston(commands.Cog):
 		if(self.client.winston_status == False):
 			await ctx.send('Winston is already offline')
 			return
-
-		self.checkWinstonStatus.stop()
 	
 		#Send prompt, clear messages in Winston's server and exit
 		await ctx.send('Closing Winston')
