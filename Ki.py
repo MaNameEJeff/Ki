@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import random
 import os
 import time
@@ -12,61 +12,43 @@ client.remove_command('help')
 #Runs when Bot is ready
 @client.event
 async def on_ready():
-	global spawn_channel, output_channel, motolist, spexlist, jefflist, spam_channel, command_channel, winston_status, incense_channel, users
-	global moto_id, jeff_id, spex_id, poketwo_id
 
 	#Initialize global variables
 	for guild in client.guilds:
 		if(guild.name == "Winston's server"):
 			for text_channel in guild.text_channels:
 				if(text_channel.id == 882574195513516072):
-					motolist = text_channel
+					client.motolist = text_channel
 				elif(text_channel.id == 882574240891666472):
-					spexlist = text_channel
+					client.spexlist = text_channel
 				elif(text_channel.id == 882574582924574770):
-					jefflist = text_channel
+					client.jefflist = text_channel
 				elif(text_channel.id == 881875552028483594):
-					output_channel = text_channel
+					client.output_channel = text_channel
 				elif(text_channel.id == 882583920963625010):
-					spam_channel = text_channel
+					client.spam_channel = text_channel
 				elif(text_channel.id == 882872744323203072):
-					command_channel = text_channel
+					client.command_channel = text_channel
 
 		elif(guild.name == "The Bois"):
 			for text_channel in guild.text_channels:
 				if(text_channel.id == 792314109625499668):
-					spawn_channel = text_channel
+					client.spawn_channel = text_channel
 				elif(text_channel.id == 851101277920559154):
-					incense_channel = text_channel
+					client.incense_channel = text_channel
 
-	moto_id = 730020582393118730
-	jeff_id = 730023436939952139
-	spex_id = 729997258656972820
-	poketwo_id = 716390085896962058
+	client.moto_id = 730020582393118730
+	client.jeff_id = 730023436939952139
+	client.spex_id = 729997258656972820
+	client.poketwo_id = 716390085896962058
 
-	users = {moto_id: motolist,
-			jeff_id: jefflist,
-			spex_id: spexlist}
+	client.ki_users = {client.moto_id: client.motolist, client.jeff_id: client.jefflist, client.spex_id: client.spexlist}
 
-	winston_status = False
+	client.winston_status = False
+
+	checkWinstonStatus.start()
 
 	print('ready')
-
-	client.var_spawn_channel = spawn_channel
-	client.var_output_channel = output_channel
-	client.var_spam_channel = spam_channel
-	client.var_command_channel = command_channel
-	client.var_incense_channel = incense_channel
-	client.var_motolist = motolist
-	client.var_spexlist = spexlist
-	client.var_jefflist = jefflist
-	client.var_winston_status = winston_status
-	client.var_users = users
-	client.var_moto_id = moto_id
-	client.var_jeff_id = jeff_id
-	client.var_spex_id = spex_id
-	client.var_poketwo_id = poketwo_id
-
 
 #Custom Help command
 @client.command()
@@ -82,41 +64,46 @@ async def help(ctx):
 	e.add_field(name='.stopSpam', value='Stops spam', inline=False)
 	e.add_field(name='.stopWinston', value='Stops Winston', inline=False)
 	e.add_field(name='.getImages(Number of messages to check, channel id) *Can only be used by MaNameEJeff', value='Gets images from the number of messages specified in channel', inline=False)
+	e.add_field(name='.check_winston_status', value='Checks if winston is online. By default runs every hour but can be restarted using this command', inline=False)
 
 	await ctx.send(embed = e)
 
 #Checks if Winston is online or not
+@tasks.loop(hours=1)
 async def checkWinstonStatus():
-	global winston_status
-	if ((await command_channel.history(limit=1).flatten())[0].content == 'online'):
-		winston_status = True
-		client.var_winston_status = True
+	if ((await client.command_channel.history(limit=1).flatten())[0].content == 'online'):
+		client.winston_status = True
+	else
+		client.winston_status = False
+
+#Checks if Winston is online or not
+@client.command()
+async def check_winston_status(ctx):
+	checkWinstonStatus.restart()
+	await ctx.send(f"Winston is online? {client.winston_status}")
 
 #Handle the command not found exception
 @client.event
 async def on_command_error(ctx, error):
 	if(isinstance(error, commands.CommandNotFound)):
 		await ctx.send(f"{error}, for a list of commands type \".help\"")
-	else:
-		await ctx.send(f"Error: {error}")
+	#else:
+	#	await ctx.send(f"Error: {error}")
 
 #Runs whenever a message is posted on Discord
 @client.event
 async def on_message(message):
 	pokemon_names = []
 
-	if(winston_status == False):
-		await checkWinstonStatus()
-
-	if((message.author.id == 882580519542468639) and (message.channel.id == command_channel.id) and (message.content == 'Rate Limited')):
-		await spawn_channel.send("Winston is being rate limited right now... Try that again after a few seconds")
-		await command_channel.purge(limit=1)
+	if((message.author.id == 882580519542468639) and (message.channel.id == client.command_channel.id) and (message.content == 'Rate Limited')):
+		await client.spawn_channel.send("Winston is being rate limited right now... Try that again after a few seconds")
+		await client.command_channel.purge(limit=1)
 		return
 
 	#Check to see if messsage if from poketwo in the spawn channel
-	if((message.author.id == poketwo_id) and (message.channel.id == spawn_channel.id)):
+	if((message.author.id == client.poketwo_id) and (message.channel.id == client.spawn_channel.id)):
 
-		if(winston_status == False):
+		if(client.winston_status == False):
 			return
 
 		#Get the message from id
@@ -141,7 +128,7 @@ async def on_message(message):
 
 				#If everyone has caught it, ask winston to catch it
 				if(len(not_caught) == 0):
-					await output_channel.send(pokemon_names[0])
+					await client.output_channel.send(pokemon_names[0])
 					return
 				
 				#Otherwise send prompt to catch the pokemon
@@ -157,12 +144,12 @@ async def on_message(message):
 #Checks pokemon name with user's list of pokemon
 async def check(name):
 
-	channels = [moto_id, jeff_id, spex_id]
+	channels = [client.moto_id, client.jeff_id, client.spex_id]
 	pokemon = []
 	uncaught = []
 
 	for i in channels:
-		messages = await users.get(i).history(limit=1000).flatten() #Get user's saved list of pokemon
+		messages = await client.ki_users.get(i).history(limit=1000).flatten() #Get user's saved list of pokemon
 		for message in messages:
 			pokemon.append(message.content)
 		if name in pokemon:

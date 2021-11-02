@@ -11,22 +11,22 @@ class downloadimages(commands.Cog):
 	async def get_images(self, ctx, channel_id, number_of_messages):
 
 		#Check if message author is Jeff or not
-		if(ctx.author.id != self.client.var_jeff_id):
+		if(ctx.author.id != self.client.jeff_id):
 			await ctx.send('Only MaNameEJeff can use this')
 			return
 
 		#Check respective channel
-		if (int(channel_id) == self.client.var_incense_channel.id):
-			image_channel = self.client.var_incense_channel
-		elif (int(channel_id) == self.client.var_spawn_channel.id):
-			image_channel = self.client.var_spawn_channel
+		if (int(channel_id) == self.client.incense_channel.id):
+			image_channel = self.client.incense_channel
+		elif (int(channel_id) == self.client.spawn_channel.id):
+			image_channel = self.client.spawn_channel
 
 		#Get images and store them as a list in pokemon
 		await ctx.send('Downloading images...')
 		pokemon = await image_channel.history(limit=int(number_of_messages)).flatten()
 		j = 0
 		for message in pokemon:
-			if(message.author.id != self.client.var_poketwo_id):
+			if(message.author.id != self.client.poketwo_id):
 				continue
 			try:
 				#Check if it is a spawn message

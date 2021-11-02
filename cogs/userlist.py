@@ -12,7 +12,7 @@ class userlist(commands.Cog):
 	
 		#Function to check if message is from Poketwo
 		def check(m):
-			return m.author.id == self.client.var_poketwo_id
+			return m.author.id == self.client.poketwo_id
 	
 		list_of_pokemon = []
 		count = 0
@@ -48,7 +48,7 @@ class userlist(commands.Cog):
 				break
 	
 		#Save user's list in respective channel
-		channel = self.client.var_users.get(ctx.author.id)
+		channel = self.client.ki_users.get(ctx.author.id)
 		for i in list_of_pokemon:
 			await channel.send(i)
 	
@@ -61,7 +61,7 @@ class userlist(commands.Cog):
 		await ctx.send("Clearing list...")
 	
 		#Clear respective user's saved list
-		channel = self.client.var_users.get(ctx.author.id)
+		channel = self.client.ki_users.get(ctx.author.id)
 		await channel.purge(limit=1000)
 		await ctx.send(f'{ctx.author.name} your list is cleared')
 	
@@ -69,7 +69,7 @@ class userlist(commands.Cog):
 	@commands.command()
 	async def showList(self, ctx):
 		
-		channel = self.client.var_users.get(ctx.author.id)
+		channel = self.client.ki_users.get(ctx.author.id)
 		l = await channel.history(limit = 1000).flatten()
 	
 		if(len(l) == 0):

@@ -10,16 +10,13 @@ class winston(commands.Cog):
 	@commands.command()
 	async def spam(self, ctx, number=5, text = "spam", is_session=False):
 	
-		if(self.client.var_winston_status == False):
-			await self.client.checkWinstonStatus()
-	
-		if((self.client.var_winston_status) and (is_session == False)):
+		if((self.client.winston_status) and (is_session == False)):
 			await ctx.send(f'Spamming {number} messages...')
-			await self.client.var_spam_channel.send(str(number) + " " + text + " " + str(is_session))
+			await self.client.spam_channel.send(str(number) + " " + text + " " + str(is_session))
 	
-		elif((self.client.var_winston_status) and (is_session)):
+		elif((self.client.winston_status) and (is_session)):
 			await ctx.send("Starting a session")
-			await self.client.var_spam_channel.send(str(number) + " " + text + " " + str(is_session))
+			await self.client.spam_channel.send(str(number) + " " + text + " " + str(is_session))
 	
 		else:
 			await ctx.send('Sorry Winston seems to be offline...')
@@ -28,7 +25,7 @@ class winston(commands.Cog):
 	@commands.command()
 	async def stopSpam(self, ctx):
 		await ctx.send("Stopping session")
-		await self.client.var_command_channel.send("Stop Spam")
+		await self.client.command_channel.send("Stop Spam")
 	
 	#Handle invalid arguments
 	@spam.error
@@ -39,24 +36,20 @@ class winston(commands.Cog):
 	@commands.command()
 	async def stopWinston(self, ctx):
 	
-		#Check winston status and if he's offline exit
-		if(self.client.var_winston_status == False):
-			await self.client.checkWinstonStatus()
-	
-		if(self.client.var_winston_status == False):
+		if(self.client.winston_status == False):
 			await ctx.send('Winston is already offline')
 			return
+
+		self.checkWinstonStatus.stop()
 	
 		#Send prompt, clear messages in Winston's server and exit
 		await ctx.send('Closing Winston')
-		await self.client.var_command_channel.send('Leave')
-		await self.client.var_command_channel.purge(limit=1000)
-		await self.client.var_output_channel.purge(limit=1000)
-		await self.client.var_spam_channel.purge(limit=1000)
-		self.client.var_winston_status = False
+		await self.client.command_channel.purge(limit=1000)
+		await self.client.output_channel.purge(limit=1000)
+		await self.client.spam_channel.purge(limit=1000)
+		await self.client.command_channel.send('Leave')
+		self.client.winston_status = False
 		await ctx.send('Winston is now offline')
-
-		print(self.client.var_winston_status)
 
 def setup(client):
 	client.add_cog(winston(client))
