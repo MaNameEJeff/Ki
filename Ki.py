@@ -24,7 +24,7 @@ async def on_ready():
 				elif(text_channel.id == 882574582924574770):
 					client.jefflist = text_channel
 				elif(text_channel.id == 881875552028483594):
-					client.output_channel = text_channel
+					client.pokemon_names_channel = text_channel
 				elif(text_channel.id == 882583920963625010):
 					client.spam_channel = text_channel
 				elif(text_channel.id == 882872744323203072):
@@ -91,14 +91,14 @@ async def on_message(message):
 			return
 
 		#Get the message from poketwo
-		pokemon_spawn_message = await message.channel.fetch_message(message.id)
+		pokemon_spawn_message = (await message.channel.fetch_message(message.id)).embeds[0]
 
 		try:
 			#Check if it is a spawn message
-			if ((pokemon_spawn_message.embeds[0].to_dict().get('title') == 'A wild pokémon has appeared!') or ('A new wild pokémon has appeared!' in pokemon_spawn_message.embeds[0].to_dict().get('title'))):
+			if ((pokemon_spawn_message.to_dict().get('title') == 'A wild pokémon has appeared!') or ('A new wild pokémon has appeared!' in pokemon_spawn_message.to_dict().get('title'))):
 	
 				#Get URL from image
-				pokemon_URL = pokemon_spawn_message.embeds[0].image.url
+				pokemon_URL = pokemon_spawn_message.image.url
 	
 				#Image recognition
 				json_data = requests.post("http://pokemon-classifier-126641831.us-east-1.elb.amazonaws.com?image="+ pokemon_URL)
@@ -110,7 +110,7 @@ async def on_message(message):
 
 				#If everyone has caught it, ask winston to catch it
 				if(len(not_caught) == 0):
-					await client.output_channel.send(pokemon_name)
+					await client.pokemon_names_channel.send(pokemon_name)
 				
 				else:				
 					#Otherwise send prompt to catch the pokemon

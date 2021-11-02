@@ -20,6 +20,8 @@ class downloadimages(commands.Cog):
 			image_channel = self.client.incense_channel
 		elif (int(channel_id) == self.client.spawn_channel.id):
 			image_channel = self.client.spawn_channel
+		else:
+			await ctx.send("Not a valid channel id")
 
 		#Get images and store them as a list in pokemon
 		await ctx.send('Downloading images...')

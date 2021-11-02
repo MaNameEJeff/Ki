@@ -18,7 +18,7 @@ class winston(commands.Cog):
 	@tasks.loop(hours=1)
 	async def checkWinstonStatus(self):
 	
-		await self.client.spawn_channel.send("Updating Winston's status...")
+		await self.client.spam_channel.send("Updating Winston's status...")
 	
 		#If winston is online update status
 		if ((self.client.winston_status == False) and ((await self.client.command_channel.history(limit=1).flatten())[0].content == 'online')):
@@ -74,7 +74,7 @@ class winston(commands.Cog):
 		#Send prompt, clear messages in Winston's server and exit
 		await ctx.send('Closing Winston')
 		await self.client.command_channel.purge(limit=1000)
-		await self.client.output_channel.purge(limit=1000)
+		await self.client.pokemon_names_channel.purge(limit=1000)
 		await self.client.spam_channel.purge(limit=1000)
 		await self.client.command_channel.send('Leave')
 		self.client.winston_status = False
