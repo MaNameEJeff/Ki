@@ -18,7 +18,7 @@ class winston(commands.Cog):
 	@tasks.loop(hours=1)
 	async def checkWinstonStatus(self):
 	
-		await self.client.spam_channel.send("Updating Winston's status...")
+		await self.client.spawn_channel.send("Updating Winston's status...")
 	
 		#If winston is online update status
 		if ((self.client.winston_status == False) and ((await self.client.command_channel.history(limit=1).flatten())[0].content == 'online')):

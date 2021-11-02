@@ -75,7 +75,7 @@ class userlist(commands.Cog):
 		channel = self.client.ki_users.get(ctx.author.id)
 		messages = await channel.history(limit = 1000).flatten()
 	
-		if(len(l) == 0):
+		if(len(messages) == 0):
 			await ctx.send("list is empty")
 			return
 	
