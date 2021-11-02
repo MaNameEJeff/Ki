@@ -1,5 +1,5 @@
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 import random
 import os
 import time
@@ -13,7 +13,7 @@ client.remove_command('help')
 @client.event
 async def on_ready():
 
-	#Initialize global variables
+	#Initialize Discord channels
 	for guild in client.guilds:
 		if(guild.name == "Winston's server"):
 			for text_channel in guild.text_channels:
@@ -37,6 +37,7 @@ async def on_ready():
 				elif(text_channel.id == 851101277920559154):
 					client.incense_channel = text_channel
 
+	#Initialize ids
 	client.moto_id = 730020582393118730
 	client.jeff_id = 730023436939952139
 	client.spex_id = 729997258656972820
@@ -44,7 +45,6 @@ async def on_ready():
 
 	client.ki_users = {client.moto_id: client.motolist, client.jeff_id: client.jefflist, client.spex_id: client.spexlist}
 	client.winston_status = False
-	checkWinstonStatus.start()
 
 	print('ready')
 
@@ -66,41 +66,22 @@ async def help(ctx):
 
 	await ctx.send(embed = e)
 
-#Checks if Winston is online or not
-@tasks.loop(hours=1)
-async def checkWinstonStatus():
-
-	if ((client.winston_status == False) and ((await client.command_channel.history(limit=1).flatten())[0].content == 'online')):
-		client.winston_status = True
-
-#Checks if Winston is online or not
-@client.command()
-async def check_winston_status(ctx):
-	checkWinstonStatus.restart()
-
-	time.sleep(2)
-
-	if (client.winston_status == True):
-		await ctx.send("Winston is online")
-	else:
-		await ctx.send("Winston is offline")
-
 #Handle the command not found exception
 @client.event
 async def on_command_error(ctx, error):
 	if(isinstance(error, commands.CommandNotFound)):
 		await ctx.send(f"{error}, for a list of commands type \".help\"")
 	else:
-		await ctx.send(f"Error: {error}")
+		await ctx.send(f"Error: {error}") #If it is some other error send the error to discord
 
 #Runs whenever a message is posted on Discord
 @client.event
 async def on_message(message):
-	pokemon_names = []
 
+	#Check if Muxus says Winston is rate limited
 	if((message.author.id == 882580519542468639) and (message.channel.id == client.command_channel.id) and (message.content == 'Rate Limited')):
 		await client.spawn_channel.send("Winston is being rate limited right now... Try that again after a few seconds")
-		await client.command_channel.purge(limit=1)
+		await client.command_channel.purge(limit=1) #Remove the rate limited message afterwards
 		return
 
 	#Check to see if messsage if from poketwo in the spawn channel
@@ -109,12 +90,12 @@ async def on_message(message):
 		if(client.winston_status == False):
 			return
 
-		#Get the message from id
+		#Get the message from poketwo
 		pokemon_spawn_message = await message.channel.fetch_message(message.id)
 
 		try:
 			#Check if it is a spawn message
-			if ((pokemon_spawn_message.embeds[0].to_dict()['title'] == 'A wild pokémon has appeared!') or ('A new wild pokémon has appeared!' in pokemon_spawn_message.embeds[0].to_dict()['title'])):
+			if ((pokemon_spawn_message.embeds[0].to_dict().get('title') == 'A wild pokémon has appeared!') or ('A new wild pokémon has appeared!' in pokemon_spawn_message.embeds[0].to_dict().get('title'))):
 	
 				#Get URL from image
 				pokemon_URL = pokemon_spawn_message.embeds[0].image.url
@@ -122,21 +103,19 @@ async def on_message(message):
 				#Image recognition
 				json_data = requests.post("http://pokemon-classifier-126641831.us-east-1.elb.amazonaws.com?image="+ pokemon_URL)
 				json_list = json.loads(json_data.text)
-				
-				for i in range(len(json_list)):
-					pokemon_names.append(json_list[i][0])
+				pokemon_name = json_list[0][0]
 	
 				#Check if pokemon is uncaught
-				not_caught = await check(pokemon_names[0])
+				not_caught = await check(pokemon_name)
 
 				#If everyone has caught it, ask winston to catch it
 				if(len(not_caught) == 0):
-					await client.output_channel.send(pokemon_names[0])
-					return
+					await client.output_channel.send(pokemon_name)
 				
-				#Otherwise send prompt to catch the pokemon
-				for name in not_caught:
-					await message.channel.send(f"Wait <@{name}>, needs to catch this")
+				else:				
+					#Otherwise send prompt to catch the pokemon
+					for name in not_caught:
+						await message.channel.send(f"Wait <@{name}>, needs to catch this")
 
 		except IndexError:
 			return
@@ -147,16 +126,15 @@ async def on_message(message):
 #Checks pokemon name with user's list of pokemon
 async def check(name):
 
-	channels = [client.moto_id, client.jeff_id, client.spex_id]
 	pokemon = []
 	uncaught = []
 
-	for i in channels:
-		messages = await client.ki_users.get(i).history(limit=1000).flatten() #Get user's saved list of pokemon
+	for user_id, channel in client.ki_users.items():
+		messages = await channel.history(limit=1000).flatten() #Get user's saved list of pokemon
 		for message in messages:
 			pokemon.append(message.content)
 		if name in pokemon:
-			uncaught.append(i) #Save and return the users who haven't caught the pokemon
+			uncaught.append(user_id) #Save and return the users who haven't caught the pokemon
 		pokemon = []
 
 	return uncaught
@@ -175,6 +153,7 @@ async def numbers(ctx, start=0, end=0):
 
 	await ctx.send(s)
 
+#Load all cogs in cogs folder
 for filename in os.listdir("./cogs"):
 	if filename.endswith(".py"):
 		client.load_extension(f"cogs.{filename[:-3]}")

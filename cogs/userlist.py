@@ -1,3 +1,5 @@
+#Cog with commands to manage the custom list of pokemon of user
+
 import discord
 from discord.ext import commands
 
@@ -6,7 +8,7 @@ class userlist(commands.Cog):
 	def __init__(self, client):
 		self.client = client
 
-	#Makes List of Pokemon
+	#Makes list of Pokemon
 	@commands.command()
 	async def makeList(self, ctx):
 	
@@ -28,22 +30,23 @@ class userlist(commands.Cog):
 			message = await self.client.wait_for('message', check=check)
 	
 			#Get embeds from message
-			message_content = message.embeds[0]
+			message_content = (message.embeds[0]).to_dict()
 	
 			#Get the number of Pokemon from footer
 			if(count == 0):
-				number_of_pokemon_string = ((((message_content.to_dict()['footer'])['text']).split(' '))[4])
-				number_of_pokemon = int(number_of_pokemon_string[:number_of_pokemon_string.index('.')])
+				number_of_pokemon_string = (((message_content.get('footer')).get('text')).split(' '))[-1]
+				number_of_pokemon = int(number_of_pokemon_string[:-1])
 	
 			#Get the names of pokemon and append them to list_of_pokemon
-			list_of_embeds = message_content.to_dict()['fields']
+			list_of_embeds = message_content.get('fields')
+			list_of_embeds.pop(-1)
 	
-			for i in range(len(list_of_embeds)-1):
-				list_of_pokemon.append((list_of_embeds[i]['name'])[list_of_embeds[i]['name'].index(" "):list_of_embeds[i]['name'].index(" #")])		
-	
+			for embed in list_of_embeds:
+				list_of_pokemon.append((embed.get('name')).split(" ")[1])	
+
 			count += 1
 	
-			#If count is greater than number of pages in list stop
+			#If count is greater than number of pages in list, stop
 			if(count > int(number_of_pokemon/20)):
 				break
 	
@@ -70,15 +73,15 @@ class userlist(commands.Cog):
 	async def showList(self, ctx):
 		
 		channel = self.client.ki_users.get(ctx.author.id)
-		l = await channel.history(limit = 1000).flatten()
+		messages = await channel.history(limit = 1000).flatten()
 	
 		if(len(l) == 0):
 			await ctx.send("list is empty")
 			return
 	
 		#Send each pokemon name as a seperate message
-		for i in l:
-			await ctx.send(i.content)
+		for message in messages:
+			await ctx.send(message.content)
 
 def setup(client):
 	client.add_cog(userlist(client))
