@@ -42,7 +42,7 @@ class userlist(commands.Cog):
 			list_of_embeds.pop(-1)
 	
 			for embed in list_of_embeds:
-				list_of_pokemon.append((embed.get('name')).split(" ")[1])	
+				list_of_pokemon.append(embed.get('name')[embed.get('name').index(" "):embed.get('name').index("#")])	
 
 			count += 1
 	

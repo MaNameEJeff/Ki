@@ -71,8 +71,6 @@ async def help(ctx):
 async def on_command_error(ctx, error):
 	if(isinstance(error, commands.CommandNotFound)):
 		await ctx.send(f"{error}, for a list of commands type \".help\"")
-	else:
-		await ctx.send(f"Error: {error}") #If it is some other error send the error to discord
 
 #Runs whenever a message is posted on Discord
 @client.event
@@ -160,4 +158,4 @@ for filename in os.listdir("./cogs"):
 
 
 #Run the bot
-client.run(os.environ['TOKEN'])
+client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.Ky_MKMB5hxr7ZDQYQQBDVPwHJoo")#os.environ['TOKEN'])
