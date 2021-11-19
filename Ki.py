@@ -1,5 +1,7 @@
 import discord
 from discord.ext import commands
+from discord_slash import SlashCommand, SlashContext
+from discord_slash.utils.manage_commands import create_choice, create_option
 import random
 import os
 import time
@@ -8,6 +10,7 @@ import json
 
 client = commands.Bot(command_prefix = '.')
 client.remove_command('help')
+slash = SlashCommand(client, sync_commands=True)
 
 #Runs when Bot is ready
 @client.event
@@ -42,6 +45,7 @@ async def on_ready():
 	client.jeff_id = 730023436939952139
 	client.spex_id = 729997258656972820
 	client.poketwo_id = 716390085896962058
+	client.guild_ids=[836276013830635590, 760880935557398608]
 
 	client.ki_users = {client.moto_id: client.motolist, client.jeff_id: client.jefflist, client.spex_id: client.spexlist}
 	client.winston_status = False
@@ -49,28 +53,28 @@ async def on_ready():
 	print('ready')
 
 #Custom Help command
-@client.command()
-async def help(ctx):
+#@client.command()
+#async def help(ctx):
+#
+#	e = discord.Embed()
+#	e.set_author(name='Help')
+#	e.add_field(name='.makeList', value='Makes list of shown pokemon', inline=False)
+#	e.add_field(name='.clearList', value='Clears user\'s list of pokemon', inline=False)
+#	e.add_field(name='.showList', value='Shows user\'s list of pokemon', inline=False)
+#	e.add_field(name='.numbers(start, stop)', value='Sends numbers from start till end', inline=False)
+#	e.add_field(name='.spam(number of messages [default = 5], message [default = \'spam\'], is_session [default = False])', value='Spam', inline=False)
+#	e.add_field(name='.stopSpam', value='Stops spam', inline=False)
+#	e.add_field(name='.stopWinston', value='Stops Winston', inline=False)
+#	e.add_field(name='.getImages(Number of messages to check, channel id) *Can only be used by MaNameEJeff', value='Gets images from the number of messages specified in channel', inline=False)
+#	e.add_field(name='.check_winston_status', value='Checks if winston is online. By default runs every hour but can be restarted using this command', inline=False)
+#
+#	await ctx.send(embed = e)
 
-	e = discord.Embed()
-	e.set_author(name='Help')
-	e.add_field(name='.makeList', value='Makes list of shown pokemon', inline=False)
-	e.add_field(name='.clearList', value='Clears user\'s list of pokemon', inline=False)
-	e.add_field(name='.showList', value='Shows user\'s list of pokemon', inline=False)
-	e.add_field(name='.numbers(start, stop)', value='Sends numbers from start till end', inline=False)
-	e.add_field(name='.spam(number of messages [default = 5], message [default = \'spam\'], is_session [default = False])', value='Spam', inline=False)
-	e.add_field(name='.stopSpam', value='Stops spam', inline=False)
-	e.add_field(name='.stopWinston', value='Stops Winston', inline=False)
-	e.add_field(name='.getImages(Number of messages to check, channel id) *Can only be used by MaNameEJeff', value='Gets images from the number of messages specified in channel', inline=False)
-	e.add_field(name='.check_winston_status', value='Checks if winston is online. By default runs every hour but can be restarted using this command', inline=False)
-
-	await ctx.send(embed = e)
-
-#Handle the command not found exception
-@client.event
-async def on_command_error(ctx, error):
-	if(isinstance(error, commands.CommandNotFound)):
-		await ctx.send(f"{error}, for a list of commands type \".help\"")
+##Handle the command not found exception
+#@client.event
+#async def on_command_error(ctx, error):
+#	if(isinstance(error, commands.CommandNotFound)):
+#		await ctx.send(f"{error}, for a list of commands type \".help\"")
 
 #Runs whenever a message is posted on Discord
 @client.event
@@ -121,6 +125,31 @@ async def on_message(message):
 	#Runs on_message alongside other commands
 	await client.process_commands(message)
 
+
+#@slash.slash(name="test",
+#             description="This is just a test command, nothing more.",
+#             guild_ids=[836276013830635590, 760880935557398608],
+#             options=[
+#               create_option(
+#                 name="optone",
+#                 description="This is the first option we have.",
+#                 option_type=3,
+#                 required=True,
+#                 choices=[
+#                  create_choice(
+#                    name="ChoiceOne",
+#                    value="DOGE!"
+#                  ),
+#                  create_choice(
+#                    name="ChoiceTwo",
+#                    value="NO DOGE"
+#                  )
+#                ]
+#               )
+#             ])
+#async def test(ctx, optone: str):
+#  await ctx.send(content=f"Wow, you actually chose!@ {optone}? :(")
+
 #Checks pokemon name with user's list of pokemon
 async def check(name):
 
@@ -138,9 +167,15 @@ async def check(name):
 	return uncaught
 
 #Send numbers from start till end
-@client.command()
-async def numbers(ctx, start=0, end=0):
+@slash.slash(
+	name="numbers",
+	description="Sends numbers from start till end",
+)
+
+async def numbers(ctx:SlashContext, start, end):
 	s = ""
+	start = int(start)
+	end = int(end)
 
 	if(end < start):
 		for i in range(int(start), int(end)-1, -1):
@@ -155,7 +190,6 @@ async def numbers(ctx, start=0, end=0):
 for filename in os.listdir("./cogs"):
 	if filename.endswith(".py"):
 		client.load_extension(f"cogs.{filename[:-3]}")
-
 
 #Run the bot
 client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.Ky_MKMB5hxr7ZDQYQQBDVPwHJoo")#os.environ['TOKEN'])

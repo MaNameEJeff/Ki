@@ -1,13 +1,16 @@
 import discord
 from discord.ext import commands
+from discord_slash import cog_ext
 import os
 
 class downloadimages(commands.Cog):
 
+	server_ids = [836276013830635590, 760880935557398608]
+
 	def __init__(self, client):
 		self.client = client
 
-	@commands.command()
+	@cog_ext.cog_slash(name="get_images", guild_ids=server_ids, description="Gets images from the number of messages specified in channel")
 	async def get_images(self, ctx, channel_id, number_of_messages):
 
 		#Check if message author is Jeff or not
@@ -38,7 +41,7 @@ class downloadimages(commands.Cog):
 					pokemon_URL = message.embeds[0].image.url
 
 					#Download image to specified path
-					img_args = "wget -O {0} {1}".format('E:/Ki/Images/' + str(j) + '.jpg', pokemon_URL)
+					img_args = "wget -O {0} {1}".format('E:/Projects/Ki/Images/' + str(j) + '.jpg', pokemon_URL)
 					j = j+1
 					os.system(img_args)
 

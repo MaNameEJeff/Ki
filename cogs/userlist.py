@@ -2,14 +2,17 @@
 
 import discord
 from discord.ext import commands
+from discord_slash import cog_ext
 
 class userlist(commands.Cog):
+
+	server_ids = [836276013830635590, 760880935557398608]
 
 	def __init__(self, client):
 		self.client = client
 
 	#Makes list of Pokemon
-	@commands.command()
+	@cog_ext.cog_slash(name="makeList", guild_ids=server_ids, description="Makes list of shown pokemon")
 	async def makeList(self, ctx):
 	
 		#Function to check if message is from Poketwo
@@ -58,7 +61,7 @@ class userlist(commands.Cog):
 		await ctx.send(f'{ctx.author.name}, your list of pokemon is successfully stored')	
 
 	#Clears user's list
-	@commands.command()
+	@cog_ext.cog_slash(name="clearList", guild_ids=server_ids, description="Clears user's list of pokemon")
 	async def clearList(self, ctx):
 	
 		await ctx.send("Clearing list...")
@@ -69,7 +72,7 @@ class userlist(commands.Cog):
 		await ctx.send(f'{ctx.author.name} your list is cleared')
 	
 	#Shows user's saved list of pokemon_spawn_message					
-	@commands.command()
+	@cog_ext.cog_slash(name="showList", guild_ids=server_ids, description="Shows user's list of pokemon")
 	async def showList(self, ctx):
 		
 		channel = self.client.ki_users.get(ctx.author.id)
