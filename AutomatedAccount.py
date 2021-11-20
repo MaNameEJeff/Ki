@@ -15,7 +15,7 @@ class AutomatedAccount():
         global driver, text_field
 
         load_dotenv('.env')
-        driver = webdriver.Firefox(executable_path=r'E:\Ki\geckodriver.exe')
+        driver = webdriver.Firefox(executable_path=r'E:\Projects\Ki\geckodriver.exe')
         actions = ActionChains(driver)
         
         #Open discord in a new browser    

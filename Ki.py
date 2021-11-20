@@ -2,9 +2,7 @@ import discord
 from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
-import random
 import os
-import time
 import requests
 import json
 
@@ -47,34 +45,15 @@ async def on_ready():
 	client.poketwo_id = 716390085896962058
 	client.guild_ids=[836276013830635590, 760880935557398608]
 
-	client.ki_users = {client.moto_id: client.motolist, client.jeff_id: client.jefflist, client.spex_id: client.spexlist}
 	client.winston_status = False
 
+	client.ki_users = {
+		client.moto_id: client.motolist,
+		client.jeff_id: client.jefflist,
+		client.spex_id: client.spexlist
+	}
+
 	print('ready')
-
-#Custom Help command
-#@client.command()
-#async def help(ctx):
-#
-#	e = discord.Embed()
-#	e.set_author(name='Help')
-#	e.add_field(name='.makeList', value='Makes list of shown pokemon', inline=False)
-#	e.add_field(name='.clearList', value='Clears user\'s list of pokemon', inline=False)
-#	e.add_field(name='.showList', value='Shows user\'s list of pokemon', inline=False)
-#	e.add_field(name='.numbers(start, stop)', value='Sends numbers from start till end', inline=False)
-#	e.add_field(name='.spam(number of messages [default = 5], message [default = \'spam\'], is_session [default = False])', value='Spam', inline=False)
-#	e.add_field(name='.stopSpam', value='Stops spam', inline=False)
-#	e.add_field(name='.stopWinston', value='Stops Winston', inline=False)
-#	e.add_field(name='.getImages(Number of messages to check, channel id) *Can only be used by MaNameEJeff', value='Gets images from the number of messages specified in channel', inline=False)
-#	e.add_field(name='.check_winston_status', value='Checks if winston is online. By default runs every hour but can be restarted using this command', inline=False)
-#
-#	await ctx.send(embed = e)
-
-##Handle the command not found exception
-#@client.event
-#async def on_command_error(ctx, error):
-#	if(isinstance(error, commands.CommandNotFound)):
-#		await ctx.send(f"{error}, for a list of commands type \".help\"")
 
 #Runs whenever a message is posted on Discord
 @client.event
@@ -97,12 +76,12 @@ async def on_message(message):
 
 		try:
 			#Check if it is a spawn message
-			if ((pokemon_spawn_message.to_dict().get('title') == 'A wild pokémon has appeared!') or ('A new wild pokémon has appeared!' in pokemon_spawn_message.to_dict().get('title'))):
+			if ('wild pokémon has appeared!' in pokemon_spawn_message.to_dict().get('title')):
 	
 				#Get URL from image
 				pokemon_URL = pokemon_spawn_message.image.url
 	
-				#Image recognition
+				#Call Image recognition on AWS Rekognition model and get the json data
 				json_data = requests.post("http://pokemon-classifier-126641831.us-east-1.elb.amazonaws.com?image="+ pokemon_URL)
 				json_list = json.loads(json_data.text)
 				pokemon_name = json_list[0][0]
@@ -125,31 +104,6 @@ async def on_message(message):
 	#Runs on_message alongside other commands
 	await client.process_commands(message)
 
-
-#@slash.slash(name="test",
-#             description="This is just a test command, nothing more.",
-#             guild_ids=[836276013830635590, 760880935557398608],
-#             options=[
-#               create_option(
-#                 name="optone",
-#                 description="This is the first option we have.",
-#                 option_type=3,
-#                 required=True,
-#                 choices=[
-#                  create_choice(
-#                    name="ChoiceOne",
-#                    value="DOGE!"
-#                  ),
-#                  create_choice(
-#                    name="ChoiceTwo",
-#                    value="NO DOGE"
-#                  )
-#                ]
-#               )
-#             ])
-#async def test(ctx, optone: str):
-#  await ctx.send(content=f"Wow, you actually chose!@ {optone}? :(")
-
 #Checks pokemon name with user's list of pokemon
 async def check(name):
 
@@ -170,19 +124,32 @@ async def check(name):
 @slash.slash(
 	name="numbers",
 	description="Sends numbers from start till end",
+	guild_ids=[760880935557398608],
+	options=[
+		create_option(
+			name="start",
+			description="Starting number",
+			option_type=4,
+			required=True
+		),
+		create_option(
+			name="end",
+			description="Ending number",
+			option_type=4,
+			required=True
+		)
+	]
 )
 
 async def numbers(ctx:SlashContext, start, end):
 	s = ""
-	start = int(start)
-	end = int(end)
 
 	if(end < start):
 		for i in range(int(start), int(end)-1, -1):
-			s = s + str(i) + " "
+			s += str(i) + " "
 	else:
 		for i in range(int(start), int(end)+1):
-			s = s + str(i) + " "
+			s += str(i) + " "
 
 	await ctx.send(s)
 

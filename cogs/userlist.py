@@ -3,16 +3,51 @@
 import discord
 from discord.ext import commands
 from discord_slash import cog_ext
+from discord_slash.utils.manage_commands import create_choice, create_option
 
 class userlist(commands.Cog):
 
-	server_ids = [836276013830635590, 760880935557398608]
+	server_ids = [760880935557398608]
 
 	def __init__(self, client):
 		self.client = client
 
+	#Manage User's list
+	@cog_ext.cog_slash( name="mylist",
+						guild_ids=server_ids,
+						description="Manage my list of Pokemon",
+						options=[
+							create_option(
+								name="manage",
+								description="Manage my list",
+								option_type=3,
+								required=True,
+								choices=[
+									create_choice(
+										name="Make my list",
+										value="Make"
+									),
+									create_choice(
+										name="Show my list",
+										value="Show"
+									),
+									create_choice(
+										name="Clear my list",
+										value="Clear"
+									)
+								]
+							)
+						]
+					  )
+	async def mylist(self, ctx, manage: str):
+		if(manage == "Make"):
+			await self.makeList(ctx)
+		elif(manage == "Show"):
+			await self.showList(ctx)
+		elif(manage == "Clear"):
+			await self.clearList(ctx)
+
 	#Makes list of Pokemon
-	@cog_ext.cog_slash(name="makeList", guild_ids=server_ids, description="Makes list of shown pokemon")
 	async def makeList(self, ctx):
 	
 		#Function to check if message is from Poketwo
@@ -61,7 +96,6 @@ class userlist(commands.Cog):
 		await ctx.send(f'{ctx.author.name}, your list of pokemon is successfully stored')	
 
 	#Clears user's list
-	@cog_ext.cog_slash(name="clearList", guild_ids=server_ids, description="Clears user's list of pokemon")
 	async def clearList(self, ctx):
 	
 		await ctx.send("Clearing list...")
@@ -72,7 +106,6 @@ class userlist(commands.Cog):
 		await ctx.send(f'{ctx.author.name} your list is cleared')
 	
 	#Shows user's saved list of pokemon_spawn_message					
-	@cog_ext.cog_slash(name="showList", guild_ids=server_ids, description="Shows user's list of pokemon")
 	async def showList(self, ctx):
 		
 		channel = self.client.ki_users.get(ctx.author.id)
