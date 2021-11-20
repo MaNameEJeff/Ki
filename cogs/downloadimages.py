@@ -51,6 +51,9 @@ class downloadimages(commands.Cog):
 					#Get URL from image
 					pokemon_URL = message.embeds[0].image.url
 
+					if("Images" not in os.listdir("./")):
+						os.system('mkdir Images')
+
 					#Download image to specified path
 					img_args = "wget -O {0} {1}".format('E:/Projects/Ki/Images/' + str(j) + '.jpg', pokemon_URL)
 					j += 1

@@ -107,6 +107,10 @@ class userlist(commands.Cog):
 	
 	#Shows user's saved list of pokemon_spawn_message					
 	async def showList(self, ctx):
+
+		e = discord.Embed()
+		e.set_author(name=f"{ctx.author.name}'s List")
+		count = 1
 		
 		channel = self.client.ki_users.get(ctx.author.id)
 		messages = await channel.history(limit = 1000).flatten()
@@ -115,9 +119,15 @@ class userlist(commands.Cog):
 			await ctx.send("list is empty")
 			return
 	
-		#Send each pokemon name as a seperate message
+		#Send user's list in embeds
 		for message in messages:
-			await ctx.send(message.content)
+			e.add_field(name=count, value=message.content, inline=True)
+			count += 1
+			if ((count % 25) == 0):
+				await ctx.send(embed = e)
+				e = discord.Embed()
+
+		await ctx.send(embed = e)
 
 def setup(client):
 	client.add_cog(userlist(client))

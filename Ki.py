@@ -24,6 +24,8 @@ async def on_ready():
 					client.spexlist = text_channel
 				elif(text_channel.id == 882574582924574770):
 					client.jefflist = text_channel
+				elif(text_channel.id == 911646750547275816):
+					client.gantherlist = text_channel
 				elif(text_channel.id == 881875552028483594):
 					client.pokemon_names_channel = text_channel
 				elif(text_channel.id == 882583920963625010):
@@ -40,17 +42,18 @@ async def on_ready():
 
 	#Initialize ids
 	client.moto_id = 730020582393118730
+	client.ganther_id = 730028657581490176
 	client.jeff_id = 730023436939952139
 	client.spex_id = 729997258656972820
 	client.poketwo_id = 716390085896962058
-	client.guild_ids=[836276013830635590, 760880935557398608]
 
 	client.winston_status = False
 
 	client.ki_users = {
 		client.moto_id: client.motolist,
 		client.jeff_id: client.jefflist,
-		client.spex_id: client.spexlist
+		client.spex_id: client.spexlist,
+		client.ganther_id: client.gantherlist
 	}
 
 	print('ready')
@@ -159,4 +162,4 @@ for filename in os.listdir("./cogs"):
 		client.load_extension(f"cogs.{filename[:-3]}")
 
 #Run the bot
-client.run(os.environ['TOKEN'])
+client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.IK9tetPdPDCBvaLxH0ZIheHM70s")#os.environ['TOKEN'])
