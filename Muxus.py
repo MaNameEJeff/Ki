@@ -37,7 +37,14 @@ async def on_message(message):
 		if(message.content == 'Leave'):
 			await leave()
 		elif(message.content == 'Stop Spam'):
-			spam.cancel()		
+			spam.cancel()
+		elif((message.content.split(" "))[0] == 'Download'):
+			spam.stop()
+			await downloadImage(message.content.split(" ")[1], message.content.split(" ")[2])
+		elif(message.content == 'Hint'):
+			spam.stop()
+			krenko.changeChannel('#pokemon-spawn')
+			krenko.say("?h", krenko)	
 
 	#Check if message is from Ki and if it is a pokemon name
 	if ((message.author.id == client.Ki_id) and (message.channel.id == client.pokemon_channel.id)):
@@ -48,7 +55,7 @@ async def on_message(message):
 		krenko.changeChannel('#pokemon-spawn')
 		krenko.say('?c ' + name, krenko)
 		krenko.changeChannel("#spam")
-		spam.restart()
+		spam.start()
 
 	#Check if message is from Ki and if it is a spam command
 	if ((message.author.id == client.Ki_id) and (message.channel.id == client.spam_channel.id)):
@@ -67,6 +74,20 @@ async def on_message(message):
 
 		#Ask krenko to spam
 		spam.start()
+
+async def downloadImage(URL, directory):
+
+	if((directory == "Type:Null") or (directory == "Type: Null")):
+		directory = "Type Null"
+
+	folders = os.listdir("E:/Projects/Ki/Images")
+
+	for folder in folders:
+		if (folder == directory):
+			img_args = "wget -O {0} {1}".format('E:/Projects/Ki/Images/' + directory +(len(os.listdir(f"E:/Projects/Ki/Images/{directory}")) + 1) + '.jpg', URL)
+			os.system(img_args)
+
+	spam.start()
 
 #Start a background task of asking Winston to spam
 @tasks.loop(seconds=3)
