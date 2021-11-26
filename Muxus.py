@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from AutomatedAccount import AutomatedAccount
 from datetime import datetime
+import time
 
 client = commands.Bot(command_prefix = '?')
 
@@ -39,7 +40,7 @@ async def on_message(message):
 		elif(message.content == 'Stop Spam'):
 			spam.cancel()
 		elif((message.content.split(" "))[0] == 'Download'):
-			spam.stop()
+			spam.cancel()
 			await downloadImage(message.content.split(" ")[1], message.content.split(" ")[2])
 		elif(message.content == 'Hint'):
 			spam.stop()
@@ -55,7 +56,7 @@ async def on_message(message):
 		krenko.changeChannel('#pokemon-spawn')
 		krenko.say('?c ' + name, krenko)
 		krenko.changeChannel("#spam")
-		spam.start()
+		spam.restart()
 
 	#Check if message is from Ki and if it is a spam command
 	if ((message.author.id == client.Ki_id) and (message.channel.id == client.spam_channel.id)):
@@ -84,9 +85,11 @@ async def downloadImage(URL, directory):
 
 	for folder in folders:
 		if (folder == directory):
-			img_args = "wget -O {0} {1}".format('E:/Projects/Ki/Images/' + directory +(len(os.listdir(f"E:/Projects/Ki/Images/{directory}")) + 1) + '.jpg', URL)
+			count = str(len(os.listdir(f"E:/Projects/Ki/Images/{directory}")) + 1)
+			img_args = f"wget -O E:/Projects/Ki/Images/{directory}/{count}.jpg {URL}"
 			os.system(img_args)
 
+	time.sleep(2)
 	spam.start()
 
 #Start a background task of asking Winston to spam
