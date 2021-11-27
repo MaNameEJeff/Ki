@@ -88,11 +88,19 @@ class userlist(commands.Cog):
 			if(count > int(number_of_pokemon/20)):
 				break
 	
-		#Save user's list in respective channel
+		count = 1
+		e = discord.Embed()
 		channel = self.client.ki_users.get(ctx.author.id)
-		for i in list_of_pokemon:
-			await channel.send(i)
-	
+
+		#Store user's list in embeds
+		for pokemon in list_of_pokemon:
+			e.add_field(name=count, value=pokemon, inline=True)
+			count += 1
+			if ((count % 25) == 0):
+				await channel.send(embed = e)
+				e = discord.Embed()
+
+		await channel.send(embed = e)	
 		await ctx.send(f'{ctx.author.name}, your list of pokemon is successfully stored')	
 
 	#Clears user's list
@@ -105,29 +113,14 @@ class userlist(commands.Cog):
 		await channel.purge(limit=1000)
 		await ctx.send(f'{ctx.author.name} your list is cleared')
 	
-	#Shows user's saved list of pokemon_spawn_message					
+	#Shows user's saved list of Pokemon					
 	async def showList(self, ctx):
-
-		e = discord.Embed()
-		e.set_author(name=f"{ctx.author.name}'s List")
-		count = 1
 		
 		channel = self.client.ki_users.get(ctx.author.id)
-		messages = await channel.history(limit = 1000).flatten()
-	
-		if(len(messages) == 0):
-			await ctx.send("list is empty")
-			return
-	
-		#Send user's list in embeds
-		for message in messages:
-			e.add_field(name=count, value=message.content, inline=True)
-			count += 1
-			if ((count % 25) == 0):
-				await ctx.send(embed = e)
-				e = discord.Embed()
+		messages = await channel.history(limit = 1000, oldest_first = True).flatten()
 
-		await ctx.send(embed = e)
+		for message in messages:
+			await ctx.send(embed = message.embeds[0])
 
 def setup(client):
 	client.add_cog(userlist(client))

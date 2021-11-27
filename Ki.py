@@ -6,6 +6,7 @@ import os
 import requests
 import json
 import time
+from cogs import shinyhunt
 
 client = commands.Bot(command_prefix = '.')
 client.remove_command('help')
@@ -49,8 +50,9 @@ async def on_ready():
 	client.jeff_id = 730023436939952139
 	client.spex_id = 729997258656972820
 	client.poketwo_id = 716390085896962058
-
+	
 	client.winston_status = False
+	client.shiny = False
 
 	client.ki_users = {
 		client.moto_id: client.motolist,
@@ -93,16 +95,32 @@ async def on_message(message):
 				not_caught = set(not_caught)
 				not_caught = list(not_caught)
 
+				is_shiny = await get_shinies()
+				for name in pokemon_names:
+					for k, v in is_shiny:
+						if(name == v):
+							await client.command_channel.send("Stop Spam")
+							await client.spawn_channel.send(f"<@{k}> your shiny has spawned")
+							await client.spawn_channel.send("Session terminated")
+							client.shiny = True
+
+				if(client.shiny):
+					client.shiny = False
+					return
+
 				#If everyone has caught it, ask winston to catch it
 				if(len(not_caught) == 0):
 					for name in pokemon_names:
 						await client.pokemon_names_channel.send(name)
-						time.sleep(2)
-				
-				else:				
+						time.sleep(2)			
+				else:
+
+					await client.command_channel.send("Stop Spam")
 					#Otherwise send prompt to catch the pokemon
 					for name in not_caught:
 						await client.spawn_channel.send(f"Wait <@{name}>, needs to catch this")
+					await client.spawn_channel.send("Session terminated")
+
 
 				if(len(pokemon_names) == 1):
 					#Get URL and name from image
@@ -199,6 +217,12 @@ async def numbers(ctx:SlashContext, start, end):
 			s += str(i) + " "
 
 	await ctx.send(s)
+
+async def get_shinies():
+	shinies = {}
+	for user_id, text_channel in client.ki_users:
+		shinies[user_id] = (text_channel.name.split("-")[1])
+	return shinies
 
 #Load all cogs in cogs folder
 for filename in os.listdir("./cogs"):

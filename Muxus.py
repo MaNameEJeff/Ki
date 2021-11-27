@@ -45,7 +45,8 @@ async def on_message(message):
 		elif(message.content == 'Hint'):
 			spam.stop()
 			krenko.changeChannel('#pokemon-spawn')
-			krenko.say("?h", krenko)	
+			krenko.say("?h", krenko)
+			krenko.changeChannel('#spam')
 
 	#Check if message is from Ki and if it is a pokemon name
 	if ((message.author.id == client.Ki_id) and (message.channel.id == client.pokemon_channel.id)):
