@@ -63,19 +63,22 @@ async def on_message(message):
 	if ((message.author.id == client.Ki_id) and (message.channel.id == client.spam_channel.id)):
 		l = ((await client.spam_channel.history(limit=1).flatten())[0].content).split(" ")
 		count = l[0]
-		message = l[1]
+		m = l[1]
 		flag = l[2]
 		krenko.changeChannel('#spam')
 		krenko.rate_limited = False
-		client.spam_message = message
+		client.spam_message = m
 
 		if(flag == "False"):
 			for _ in range(int(count)):
-				krenko.say(message, krenko)
+				krenko.say(m, krenko)
 			return
 
 		#Ask krenko to spam
 		spam.start()
+
+	#Runs on_message alongside other commands
+	await client.process_commands(message)
 
 async def downloadImage(URL, directory):
 
@@ -90,11 +93,10 @@ async def downloadImage(URL, directory):
 			img_args = f"wget -O E:/Projects/Ki/Images/{directory}/{count}.jpg {URL}"
 			os.system(img_args)
 
-	time.sleep(2)
 	spam.start()
 
 #Start a background task of asking Winston to spam
-@tasks.loop(seconds=3)
+@tasks.loop(seconds=2)
 async def spam():
 
 	if(krenko.rate_limited == True):

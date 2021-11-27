@@ -70,7 +70,7 @@ class AutomatedAccount():
         try:
             for character in text:
                 text_field.send_keys(character)
-                time.sleep(0.3)
+                time.sleep(0.1)
             text_field.send_keys(Keys.RETURN)
 
         except:

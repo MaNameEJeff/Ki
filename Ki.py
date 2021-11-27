@@ -79,10 +79,11 @@ async def on_message(message):
 		if(client.winston_status == False):
 			return
 
-		#Get the message from poketwo
-		pokemon_spawn_message = (await message.channel.fetch_message(message.id)).embeds[0]
-
 		try:
+
+			#Get the message from poketwo
+			pokemon_spawn_message = (await message.channel.fetch_message(message.id)).embeds[0]
+
 			#Check if it is a spawn message
 			if ('wild pokémon has appeared!' in pokemon_spawn_message.to_dict().get('title')):
 	
@@ -97,22 +98,21 @@ async def on_message(message):
 
 				is_shiny = await get_shinies()
 				for name in pokemon_names:
-					for k, v in is_shiny:
-						if(name == v):
-							await client.command_channel.send("Stop Spam")
-							await client.spawn_channel.send(f"<@{k}> your shiny has spawned")
-							await client.spawn_channel.send("Session terminated")
+					for user, shiny_pokemon in is_shiny.items():
+						if(name == shiny_pokemon):
+							await client.spawn_channel.send(f"<@{user}> your shiny has spawned")
 							client.shiny = True
 
 				if(client.shiny):
+					await client.command_channel.send("Stop Spam")
+					await client.spawn_channel.send("Session terminated")
 					client.shiny = False
 					return
 
 				#If everyone has caught it, ask winston to catch it
 				if(len(not_caught) == 0):
 					for name in pokemon_names:
-						await client.pokemon_names_channel.send(name)
-						time.sleep(2)			
+						await client.pokemon_names_channel.send(name)			
 				else:
 
 					await client.command_channel.send("Stop Spam")
@@ -220,7 +220,7 @@ async def numbers(ctx:SlashContext, start, end):
 
 async def get_shinies():
 	shinies = {}
-	for user_id, text_channel in client.ki_users:
+	for user_id, text_channel in client.ki_users.items():
 		shinies[user_id] = (text_channel.name.split("-")[1])
 	return shinies
 
