@@ -41,7 +41,7 @@ async def on_message(message):
 			spam.cancel()
 		elif((message.content.split(" "))[0] == 'Download'):
 			spam.cancel()
-			await downloadImage(message.content.split(" ")[1], message.content.split(" ")[2])
+			await downloadImage(message.content.split(" ")[1], message.content.split(" ")[2:])
 		elif(message.content == 'Hint'):
 			spam.stop()
 			krenko.changeChannel('#pokemon-spawn')
@@ -82,7 +82,7 @@ async def on_message(message):
 
 async def downloadImage(URL, directory):
 
-	if((directory == "Type:Null") or (directory == "Type: Null")):
+	if(directory == "Type: Null"):
 		directory = "Type Null"
 
 	folders = os.listdir("E:/Projects/Ki/Images")

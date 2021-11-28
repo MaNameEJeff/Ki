@@ -22,7 +22,14 @@ class shinyhunt(commands.Cog):
 					  )
 	async def my_shiny(self, ctx):
 
-		shiny_hunt = ((self.client.ki_users[ctx.author.id]).name).split("-")[1]
+		shiny_hunt_list = ((self.client.ki_users[ctx.author.id]).name).split("-")[1:]
+		shiny_hunt = ""
+		for sh in shiny_hunt_list:
+			shiny_hunt += (sh.capitalize() + " ")
+		shiny_hunt = shiny_hunt[:-1]
+
+		if(shiny_hunt == "Type Null"):
+				shiny_hunt = "Type: Null"
 
 		if(shiny_hunt == "none"):
 			await ctx.send("You haven't set your shiny yet!", components=[
@@ -46,15 +53,43 @@ class shinyhunt(commands.Cog):
 		while True:
 			await ctx.send(f"What do you want to shiny hunt <@{ctx.author.id}>?")
 			message = await self.client.wait_for('message', check=check)
+			messages = message.content.split(" ")
+			message = ""
+			for m in messages:
+				message += m.capitalize() + " "
+			message = message[:-1]
 
-			if(message.content not in self.client.pokemon_in_game):
+			if(message not in self.client.pokemon_in_game):
 				await ctx.send("Please enter the correct pokemon name")
 				continue
 			break
 
+		if(message == "Type: Null"):
+				message = "Type Null"
+
 		text_channel = self.client.ki_users[ctx.author.id]
-		await text_channel.edit(name=f"{ctx.author.name}-{message.content}")
-		await ctx.send(f"<@{ctx.author.id}> you are now shiny hunting {message.content}")
+		await text_channel.edit(name=f"{ctx.author.name}-{message}")
+
+		if(message == "Type Null"):
+			await ctx.send(f"<@{ctx.author.id}> you are now shiny hunting Type: Null")
+		else:
+			await ctx.send(f"<@{ctx.author.id}> you are now shiny hunting {message}")
+
+	async def get_shinies(self):
+		shinies = {}
+		for user_id, text_channel in self.client.ki_users.items():
+			shiny_list = text_channel.name.split("-")[1:]
+			shiny = ""
+			for sh in shiny_list:
+				shiny += (sh.capitalize() + " ")
+			shiny = shiny[:-1]
+
+			if(shiny == "Type Null"):
+				shiny = "Type: Null"
+
+			shinies[user_id] = shiny
+
+		return shinies
 
 def setup(client):
 	client.add_cog(shinyhunt(client))
