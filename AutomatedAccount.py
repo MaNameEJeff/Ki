@@ -42,7 +42,7 @@ class AutomatedAccount():
         text_field = driver.find_element_by_xpath('/html/body/div/div[2]/div/div[2]/div/div/div/div[2]/div[2]/div[2]/main/form/div[1]/div/div/div[1]/div/div[3]/div[2]')
 
     #Change to specific channel in discord
-    def changeChannel(ctx, channel):
+    def changeChannel(self, channel):
         global text_field
 
         #Open the quick change menu with the ctrl+k shortcut
@@ -61,7 +61,7 @@ class AutomatedAccount():
         text_field = driver.find_element_by_xpath('/html/body/div/div[2]/div/div[2]/div/div/div/div/div[2]/div[2]/main/form/div[1]/div/div/div[1]/div/div[3]/div[2]')
 
     #Send specified message
-    def say(ctx, text, self):
+    def say(self, text):
 
         global text_field
         actions = ActionChains(driver)
@@ -87,5 +87,5 @@ class AutomatedAccount():
             return
 
     #Close browser
-    def close(ctx):
+    def close(self):
         driver.close()

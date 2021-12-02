@@ -1,32 +1,32 @@
-#Cog with all commands related to winston
+#Cog with all commands related to automated accounts
 
 import discord
 from discord.ext import commands
 from discord_slash import cog_ext
 from discord_slash.utils.manage_commands import create_choice, create_option
-import time
 
-class winston(commands.Cog):
+class automated(commands.Cog):
 
 	server_ids = [760880935557398608]
 
 	def __init__(self, client):
 		self.client = client
 	
-	#Updates Winston's status
-	@cog_ext.cog_slash( name="check_winston_status",
+	#Updates account status
+	@cog_ext.cog_slash( name="check_account_status",
 						guild_ids=server_ids,
-						description="Updates winston's status"
+						description="Updates status of accounts that can be automated"
 					  )
 
-	async def check_winston_status(self, ctx):
+	async def check_account_status(self, ctx):
 
+		#Check the command channel in Winston's server to see if Muxus says accounts are online
 		status = (await self.client.command_channel.history(limit=1).flatten())[0].content
 		if (status == "online"):
-			await ctx.send("Winston is online")
+			await ctx.send("Accounts are online")
 			self.client.winston_status = True
 		else:
-			await ctx.send("Winston is offline")
+			await ctx.send("Accounts are offline")
 
 	#Spam
 	@cog_ext.cog_slash(	name="spam",
@@ -35,7 +35,7 @@ class winston(commands.Cog):
 						options=[
 							create_option(
 								name="spam_tasks",
-								description="Manage Winston",
+								description="Manage Accounts",
 								option_type=3,
 								required=True,
 								choices=[
@@ -63,7 +63,7 @@ class winston(commands.Cog):
 			return m.channel == ctx.channel
 
 		if(self.client.winston_status == False):
-			await ctx.send('Sorry Winston seems to be offline...')
+			await ctx.send('Sorry no account is online...')
 			return
 	
 		#Spam only mentioned number of messages as it is not a session
@@ -93,31 +93,31 @@ class winston(commands.Cog):
 
 			await self.client.spam_channel.send(f"1 {text} True")
 	
-		#Stop Winston spamming
+		#Stop spamming
 		elif(spam_tasks == "Stop"):
 			await ctx.send("Stopping session")
 			await self.client.command_channel.send("Stop Spam")
 		
-	#Close Muxus and winston
-	@cog_ext.cog_slash(	name="stopWinston",
+	#Close Muxus and all accounts
+	@cog_ext.cog_slash(	name="stopAllAccounts",
 						guild_ids=server_ids,
-						description="Stops Winston"
+						description="Stops all running accounts"
 					  )
 
-	async def stopWinston(self, ctx):
+	async def stopAllAccounts(self, ctx):
 	
 		if(self.client.winston_status == False):
-			await ctx.send('Winston is already offline')
+			await ctx.send('Accounts are already offline')
 			return
 	
 		#Send prompt, clear messages in Winston's server and exit
-		await ctx.send('Closing Winston')
+		await ctx.send('Closing...')
 		await self.client.command_channel.purge(limit=1000)
 		await self.client.pokemon_names_channel.purge(limit=1000)
 		await self.client.spam_channel.purge(limit=1000)
 		await self.client.command_channel.send('Leave')
 		self.client.winston_status = False
-		await ctx.send('Winston is now offline')
+		await ctx.send('All accounts are now offline')
 
 def setup(client):
-	client.add_cog(winston(client))
+	client.add_cog(automated(client))

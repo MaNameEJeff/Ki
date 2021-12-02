@@ -119,8 +119,11 @@ class userlist(commands.Cog):
 		channel = self.client.ki_users.get(ctx.author.id)
 		messages = await channel.history(limit = 1000, oldest_first = True).flatten()
 
-		for message in messages:
-			await ctx.send(embed = message.embeds[0])
+		if(len(messages) == 0):
+			await ctx.send("List is empty")
+		else:
+			for message in messages:
+				await ctx.send(embed = message.embeds[0])
 
 def setup(client):
 	client.add_cog(userlist(client))
