@@ -89,18 +89,14 @@ class userlist(commands.Cog):
 				break
 	
 		count = 1
-		e = discord.Embed()
-		channel = self.client.ki_users.get(ctx.author.id)
+		list_data = {}
 
-		#Store user's list in embeds
+		#Store user's list in database
 		for pokemon in list_of_pokemon:
-			e.add_field(name=count, value=pokemon, inline=True)
+			list_data[count] = pokemon.replace(" ", "")
 			count += 1
-			if ((count % 25) == 0):
-				await channel.send(embed = e)
-				e = discord.Embed()
-
-		await channel.send(embed = e)	
+	
+		self.client.data_base.db.child("users").child(ctx.author.name).child("list").update(list_data)
 		await ctx.send(f'{ctx.author.name}, your list of pokemon is successfully stored')	
 
 	#Clears user's list
@@ -109,21 +105,48 @@ class userlist(commands.Cog):
 		await ctx.send("Clearing list...")
 	
 		#Clear respective user's saved list
-		channel = self.client.ki_users.get(ctx.author.id)
-		await channel.purge(limit=1000)
+		self.client.data_base.db.child("users").child(ctx.author.name).child("list").remove()
 		await ctx.send(f'{ctx.author.name} your list is cleared')
 	
-	#Shows user's saved list of Pokemon					
+	#Shows user's saved list of Pokemon		
 	async def showList(self, ctx):
-		
-		channel = self.client.ki_users.get(ctx.author.id)
-		messages = await channel.history(limit = 1000, oldest_first = True).flatten()
-
-		if(len(messages) == 0):
+		try:
+			user_list = self.client.data_base.db.child("users").child(ctx.author.name).child("list").get().val()
+			user_list.remove(None)
+		except AttributeError:
 			await ctx.send("List is empty")
-		else:
-			for message in messages:
-				await ctx.send(embed = message.embeds[0])
+			return
 
+		#Create the embeds and set the values
+		pages = []
+		page = discord.Embed(title=f"**{ctx.author.name}'s List**", description='Ki will mention you if a pokemon from this list spawns')
+		if(pokemon_number+24 > len(user_list)):
+			page.set_footer(text=f"Showing entries 1-{len(user_list)} out of {len(user_list)}")
+		else:
+			page.set_footer(text=f"Showing entries 1-24 out of {len(user_list)}")
+		page.color = 0x7efb2a
+
+		#Set the pokemon name values in embed considering the 25 field limit
+		for pokemon_number in range(1, len(user_list)+1):
+			if(pokemon_number % 25 == 0):
+				pages.append(page)
+				page = discord.Embed()
+
+				if(pokemon_number+24 > len(user_list)):
+					footer_text = f"{pokemon_number}-{len(user_list)}"
+				else:
+					footer_text = f"{pokemon_number}-{pokemon_number+24}"
+
+				page.set_footer(text=f"Showing entries {footer_text} out of {len(user_list)}")
+				page.color = 0x7efb2a
+			page.add_field(name=pokemon_number, value=user_list[pokemon_number-1], inline=True)
+
+		pages.append(page)
+
+		#Display the list of embeds using the user menu
+		await ctx.send(f"<@{ctx.author.id}> your list is")
+		self.client.user_list_menu.set_data(data=pages)
+		await self.client.user_list_menu.start(ctx)
+			
 def setup(client):
 	client.add_cog(userlist(client))

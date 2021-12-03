@@ -5,9 +5,6 @@ import pyrebase
 import discord
 from discord.ext import commands
 from discord_slash import cog_ext
-from discord_slash.utils.manage_commands import create_choice, create_option
-from discord_slash.utils.manage_components import create_button, create_actionrow
-from discord_slash.model import ButtonStyle
 
 class database(commands.Cog):
 	def __init__(self, client):
@@ -41,12 +38,6 @@ class database(commands.Cog):
 	def add_automated_accounts(self, account_name, shiny):
 		self.db.child("automated-accounts").child(account_name).child("shiny").update({"pokemon": "None"})
 		self.db.child("automated-accounts").child(account_name).child("list").update({"pokemon_list": "None"})
-
-	#Add another user
-	def add_user(self, user_name):
-		self.db.child("users").child(user_name).child("shiny").update({"pokemon": "None", "streak":0})
-		self.db.child("users").child(user_name).child("list").update({"pokemon_list": "None"})
-		self.db.child("users").child(user_name).child("quest").update({"quest": "None"})
 
 def setup(client):
 	client.add_cog(database(client))

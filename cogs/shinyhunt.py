@@ -6,7 +6,6 @@ from discord_slash import cog_ext
 from discord_slash.utils.manage_components import create_button, create_actionrow
 from discord_slash.model import ButtonStyle
 from discord import Color
-
 import math
 
 class shinyhunt(commands.Cog):
@@ -23,17 +22,17 @@ class shinyhunt(commands.Cog):
 					  )
 	async def my_shiny(self, ctx):
 
-		#Check if user has data in database
-		if(ctx.author.name not in self.client.data_base.db.child("users").get().val()):
-			await ctx.send(f"<@{ctx.author.id}> you haven't registered with Ki yet! Register with /add_me")
-			return
+		try:
+			#Get user data from database
+			shiny_hunt = self.client.data_base.db.child("users").child(ctx.author.name).child("shiny").get().val()["pokemon"]
+			streak = self.client.data_base.db.child("users").child(ctx.author.name).child("shiny").get().val()["streak"]
+		except TypeError:
+			shiny_hunt = None
+			streak = 0
 
-		#Get user data from database
-		shiny_hunt = self.client.data_base.db.child("users").child(ctx.author.name).child("shiny").get().val()["pokemon"]
-		streak = self.client.data_base.db.child("users").child(ctx.author.name).child("shiny").get().val()["streak"]
 		percentage = ((1 + math.log(1 + streak/30)) / 4096)*100
 
-		#Embed decorations
+		#Create the Embed and decorate it
 		shiny_embed = discord.Embed()
 		shiny_embed.title = "Shiny Hunt"
 		shiny_embed.color = 0x00FFFF
@@ -41,7 +40,7 @@ class shinyhunt(commands.Cog):
 		shiny_embed.add_field(name="Streak", value=streak, inline=True)
 		shiny_embed.add_field(name="Percent Chance", value=str(percentage)+"%", inline=True)
 
-		if(shiny_hunt == "None"):
+		if(shiny_hunt == None):
 			shiny_embed.description = "Ki isn't checking for the pokemon you are hunting!"
 			button_text = "Set It"
 		else:
@@ -81,10 +80,15 @@ class shinyhunt(commands.Cog):
 		shiny_hunt_data = {}
 
 		for field in fields:
-			if(field["name"] == "Currently Hunting"):
-				shiny_hunt_data["pokemon"] = field["value"]
-			elif(field["name"] == "Chain"):
-				shiny_hunt_data["streak"] = int(field["value"])
+
+			try:
+				if(field["name"] == "Currently Hunting"):
+					shiny_hunt_data["pokemon"] = field["value"]
+				elif(field["name"] == "Chain"):
+					shiny_hunt_data["streak"] = int(field["value"])
+			except:
+				await ctx.send("It seems you currently don't have a shiny hunt...")
+				return
 
 		#Store data in database
 		self.client.data_base.db.child("users").child(ctx.author.name).child("shiny").update(shiny_hunt_data)
@@ -93,14 +97,15 @@ class shinyhunt(commands.Cog):
 	#Returns users and their shiny hunt pokemon
 	async def get_shinies(self, ctx):
 
+		try:
+			users = self.client.data_base.db.child("users").get().val()
+		except TypeError:
+			return None
+
 		shinies = []
-		users = self.client.data_base.db.child("users").get().val()
 
 		for user, data in users.items():
 			user_shiny_data = {}
-			if(user == "Morty"):
-				continue
-
 			user_shiny_data["name"] = user
 			user_shiny_data["pokemon"] = data["shiny"]["pokemon"]
 			shinies.append(user_shiny_data)

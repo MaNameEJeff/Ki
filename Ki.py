@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 from discord_slash import SlashCommand, SlashContext
 from discord_slash.utils.manage_commands import create_choice, create_option
+from discord.ext import menus
 
 import os
 import requests
@@ -10,6 +11,7 @@ import time
 
 from cogs import catching
 from cogs import database
+from MyMenu import MyMenu
 
 client = commands.Bot(command_prefix = '.')
 client.remove_command('help')
@@ -25,14 +27,6 @@ async def on_ready():
 	for guild in client.guilds:
 		if(guild.name == "Winston's server"):
 			for text_channel in guild.text_channels:
-				if(text_channel.id == 882574195513516072):
-					client.motolist = text_channel
-				elif(text_channel.id == 882574240891666472):
-					client.spexlist = text_channel
-				elif(text_channel.id == 882574582924574770):
-					client.jefflist = text_channel
-				elif(text_channel.id == 911646750547275816):
-					client.gantherlist = text_channel
 				elif(text_channel.id == 881875552028483594):
 					client.pokemon_names_channel = text_channel
 				elif(text_channel.id == 882583920963625010):
@@ -57,15 +51,11 @@ async def on_ready():
 	client.poketwo_id = 716390085896962058
 
 	client.winston_status = False
+
+	#Initialize objects
 	client.catch = catching.catching(client)
 	client.data_base = database.database(client)
-
-	client.ki_users = {
-		client.moto_id: client.motolist,
-		client.jeff_id: client.jefflist,
-		client.spex_id: client.spexlist,
-		client.ganther_id: client.gantherlist
-	}
+	client.user_list_menu = UserListMenu()
 
 	print('ready')
 
@@ -141,26 +131,10 @@ async def numbers(ctx:SlashContext, start, end):
 
 	await ctx.send(s)
 
-#Register user in database
-@slash.slash(
-	name="add_me",
-	description="Register with Ki",
-	guild_ids=[760880935557398608]
-)
-
-async def add_me(ctx):
-
-	if(ctx.author.name in client.data_base.db.child("users").get().val()):
-		await ctx.send("You are already registered")
-		return
-
-	client.data_base.add_user(ctx.author.name)
-	await ctx.send("You have successfully registered!")
-
 #Load all cogs in cogs folder
 for filename in os.listdir("./cogs"):
 	if filename.endswith(".py"):
 		client.load_extension(f"cogs.{filename[:-3]}")
 
 #Run the bot
-client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.TK8OaXRGU36AZ57WYSGfSglzNe8")#os.environ['TOKEN'])
+client.run(os.environ['TOKEN'])
