@@ -97,6 +97,7 @@ class userlist(commands.Cog):
 			count += 1
 	
 		self.client.data_base.db.child("users").child(ctx.author.name).child("list").update(list_data)
+		self.client.data_base.db.child("users").child(ctx.author.name).update({"id": ctx.author.id})
 		await ctx.send(f'{ctx.author.name}, your list of pokemon is successfully stored')	
 
 	#Clears user's list

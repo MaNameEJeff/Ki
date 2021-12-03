@@ -1,15 +1,8 @@
 #Firebase
-
 import pyrebase
 
-import discord
-from discord.ext import commands
-from discord_slash import cog_ext
-
-class database(commands.Cog):
-	def __init__(self, client):
-
-		self.client = client
+class database():
+	def __init__(self):
 
 		firebaseConfig = {
 			"apiKey": "AIzaSyAc8yTPAFI6jYyjlZzq_CcP7BStiGuEg24",
@@ -38,6 +31,4 @@ class database(commands.Cog):
 	def add_automated_accounts(self, account_name, shiny):
 		self.db.child("automated-accounts").child(account_name).child("shiny").update({"pokemon": "None"})
 		self.db.child("automated-accounts").child(account_name).child("list").update({"pokemon_list": "None"})
-
-def setup(client):
-	client.add_cog(database(client))
+		

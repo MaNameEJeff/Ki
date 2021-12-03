@@ -95,21 +95,23 @@ class shinyhunt(commands.Cog):
 		await ctx.send(f"<@{ctx.author.id}> your shiny hunt data is set.")
 
 	#Returns users and their shiny hunt pokemon
-	async def get_shinies(self, ctx):
+	async def get_shinies(self):
 
 		try:
 			users = self.client.data_base.db.child("users").get().val()
 		except TypeError:
 			return None
 
-		shinies = []
+		shinies = {}
 
 		for user, data in users.items():
-			user_shiny_data = {}
-			user_shiny_data["name"] = user
-			user_shiny_data["pokemon"] = data["shiny"]["pokemon"]
-			shinies.append(user_shiny_data)
+			try:
+				shinies[data["id"]] = {"name": user, "pokemon": data["shiny"]["pokemon"]}
+			except KeyError:
+				continue
 
+		if(len(shinies) == 0):
+			return None
 		return(shinies)
 
 	#Updates shiny hunt streak by one

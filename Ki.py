@@ -10,8 +10,8 @@ import json
 import time
 
 from cogs import catching
-from cogs import database
-from MyMenu import MyMenu
+from database import database
+from UserListMenu import UserListMenu
 
 client = commands.Bot(command_prefix = '.')
 client.remove_command('help')
@@ -27,7 +27,7 @@ async def on_ready():
 	for guild in client.guilds:
 		if(guild.name == "Winston's server"):
 			for text_channel in guild.text_channels:
-				elif(text_channel.id == 881875552028483594):
+				if(text_channel.id == 881875552028483594):
 					client.pokemon_names_channel = text_channel
 				elif(text_channel.id == 882583920963625010):
 					client.spam_channel = text_channel
@@ -54,7 +54,7 @@ async def on_ready():
 
 	#Initialize objects
 	client.catch = catching.catching(client)
-	client.data_base = database.database(client)
+	client.data_base = database()
 	client.user_list_menu = UserListMenu()
 
 	print('ready')
