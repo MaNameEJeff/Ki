@@ -28,21 +28,25 @@ class catching(commands.Cog):
 	#Find out what Pokemon it is by comparing the hint with the names of pokemon
 	async def what_pokemon(self):
 
-		possible_pokemon = []
 
 		while True:
 
 			await self.take_hint()
-	
-			for pokemon in self.client.pokemon_in_game:
+
+			#Remove the commented code block
+			'''for pokemon in self.client.pokemon_in_game:
 				if(len(pokemon) == len(self.hint)):
-					possible_pokemon.append(pokemon)
-	
+					possible_pokemon.append(pokemon)'''
+			
+			#REPLACES ABOVE CODE BLOCK
+			#Returns the corresponding list of pokemon, according to length of the hint
+			possible_pokemon = self.client.pokemon_in_game.get(len(self.hint))
+
 			letter_count = 0
 			while(letter_count < len(self.hint)):
 				if(self.hint[letter_count] != "_"):
 					count = 0
-					while (count < len(possible_pokemon)):
+					while(count < len(possible_pokemon)):
 						if(possible_pokemon[count][letter_count] != self.hint[letter_count]):
 							possible_pokemon.remove(possible_pokemon[count])
 							count -= 1
