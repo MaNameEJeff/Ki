@@ -13,7 +13,10 @@ from cogs import catching
 from database import database
 from UserListMenu import UserListMenu
 
-client = commands.Bot(command_prefix = '.')
+intents = discord.Intents.all()
+intents.members = True
+intents.presences = True
+client = commands.Bot(command_prefix = '.', intents=intents)
 client.remove_command('help')
 slash = SlashCommand(client, sync_commands=True)
 
@@ -27,21 +30,17 @@ async def on_ready():
 	for guild in client.guilds:
 		if(guild.name == "Winston's server"):
 			for text_channel in guild.text_channels:
-				if(text_channel.id == 881875552028483594):
-					client.pokemon_names_channel = text_channel
-				elif(text_channel.id == 882583920963625010):
-					client.spam_channel = text_channel
-				elif(text_channel.id == 882872744323203072):
+				if(text_channel.id == 882872744323203072):
 					client.command_channel = text_channel
 
 		elif(guild.name == "The Bois"):
 			for text_channel in guild.text_channels:
 				if(text_channel.id == 792314109625499668):
 					client.spawn_channel = text_channel
-				elif(text_channel.id == 851101277920559154):
-					client.incense_channel = text_channel
-				elif(text_channel.id == 789868961071628348):
-					client.bot_channel = text_channel
+				elif(text_channel.id == 850062129984831548):
+					client.wares_channel = text_channel
+				elif(text_channel.id == 916622948549410887):
+					client.bot_trade_channel = text_channel
 
 	#Initialize ids
 	client.moto_id = 730020582393118730
@@ -50,7 +49,8 @@ async def on_ready():
 	client.spex_id = 729997258656972820
 	client.poketwo_id = 716390085896962058
 
-	client.winston_status = False
+	client.available_slaves = []
+	client.authorized = [client.jeff_id, client.moto_id]
 
 	#Initialize objects
 	client.catch = catching.catching(client)
@@ -72,7 +72,7 @@ async def on_message(message):
 	#Check to see if messsage if from poketwo in the spawn channel
 	if((message.author.id == client.poketwo_id) and (message.channel.id == client.spawn_channel.id)):
 
-		if(client.winston_status == False):
+		if(len(client.available_slaves) == 0):
 			return
 
 		try:
@@ -137,4 +137,4 @@ for filename in os.listdir("./cogs"):
 		client.load_extension(f"cogs.{filename[:-3]}")
 
 #Run the bot
-client.run(os.environ['TOKEN'])
+client.run("NzkwNDkyNTYxMzQ4ODg2NTcw.X-BZkQ.TK8OaXRGU36AZ57WYSGfSglzNe8")#os.environ['TOKEN'])

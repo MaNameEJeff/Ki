@@ -16,17 +16,11 @@ async def on_ready():
 
 	#Initialize global variables
 	for text_channel in client.guilds[0].text_channels:
-		if(text_channel.id == 881875552028483594):
-			client.pokemon_channel = text_channel
-		elif(text_channel.id == 882583920963625010):
-			client.spam_channel = text_channel
-		elif(text_channel.id == 882872744323203072):
+		if(text_channel.id == 882872744323203072):
 			client.command_channel = text_channel
 
 	client.Ki_id = 790492561348886570
 	client.spam_message = "spam"
-	
-	await client.command_channel.send("online")
 	print('Ready to serve')
 
 @client.event
@@ -34,51 +28,52 @@ async def on_message(message):
 
 	#Check if message is from Ki and if it is a command
 	if ((message.author.id == client.Ki_id) and (message.channel.id == client.command_channel.id)):
-		if(message.content == 'Leave'):
-			await leave()
-		elif(message.content == 'Stop Spam'):
+		command = message.content.split(" ")
+		
+		#Universal Commands
+		if(" ".join(command) == 'Stop Spam'):
 			spam.cancel()
-		elif((message.content.split(" "))[0] == 'Download'):
+		elif(command[0] == 'Download'):
 			spam.cancel()
-			await downloadImage(message.content.split(" ")[1], " ".join(message.content.split(" ")[2:]))
-		elif('Say' in message.content):
-			krenko.changeChannel('#bot')
-			krenko.say(message.content[4:])
-		elif(message.content == 'Hint'):
-			spam.stop()
+			await downloadImage(command[1], " ".join(command[2:]))
 
-			krenko.changeChannel('#pokemon-spawn')
-			krenko.say("?h")
-			krenko.changeChannel('#spam')
+		#Winston Commands
+		elif("Winston" == command[0]):
+			if(command[1] == "pokemon"):
+				pokemon_name = " ".join(command[2:])
+				spam.stop()
 
-	#Check if message is from Ki and if it is a pokemon name
-	if ((message.author.id == client.Ki_id) and (message.channel.id == client.pokemon_channel.id)):
-		pokemon_name = (await client.pokemon_channel.history(limit=1).flatten())[0].content
-		spam.stop()
+				#Ask krenko to catch the pokemon
+				krenko.changeChannel('#pokemon-spawn')
+				krenko.say('?c ' + pokemon_name)
+				krenko.changeChannel("#spam")
+				spam.restart()
+			elif(command[1] == 'Leave'):
+				await leave()
 
-		#Ask krenko to catch the pokemon
-		krenko.changeChannel('#pokemon-spawn')
-		krenko.say('?c ' + pokemon_name)
-		krenko.changeChannel("#spam")
-		spam.restart()
+			#Check if message is from Ki and if it is a spam command
+			elif(command[1] == "spam"):
+				krenko.changeChannel("#spam")
+				count = command[2]
+				m = command[3]
+				flag = command[4]
 
-	#Check if message is from Ki and if it is a spam command
-	if ((message.author.id == client.Ki_id) and (message.channel.id == client.spam_channel.id)):
-		krenko.changeChannel("#spam")
-		l = ((await client.spam_channel.history(limit=1).flatten())[0].content).split(" ")
-		count = l[0]
-		m = l[1]
-		flag = l[2]
+				client.spam_message = m
 
-		client.spam_message = m
+				if(flag == "False"):
+					krenko.changeChannel("#spam")
+					for _ in range(int(count)):
+						krenko.say(m)
+				else:
+					#Ask servants to spam
+					spam.start()
 
-		if(flag == "False"):
-			krenko.changeChannel("#spam")
-			for _ in range(int(count)):
-				krenko.say(m)
-		else:
-			#Ask servants to spam
-			spam.start()
+			elif(command[2] == 'Say'):
+				spam.stop()
+				krenko.changeChannel(command[1])
+				krenko.say(" ".join(command[3:]))
+				krenko.changeChannel("#spam")
+				spam.restart()
 
 	#Runs on_message alongside other commands
 	await client.process_commands(message)
@@ -92,11 +87,11 @@ async def downloadImage(URL, directory):
 
 	for folder in folders:
 		if (folder == directory[directory.rindex("/")+1:]):
-			#count = str(len(os.listdir(directory)) + 1)
-			img_args = f"wget -O {directory}/0.png {URL}"
+			count = str(len(os.listdir(directory)) + 1)
+			img_args = f"wget -O {directory}/{count}.png {URL}"
 			os.system(img_args)
 
-	#spam.start()
+	spam.restart()
 
 #Start a background task of asking accounts to spam
 @tasks.loop(seconds=2)

@@ -24,8 +24,8 @@ class shinyhunt(commands.Cog):
 
 		try:
 			#Get user data from database
-			shiny_hunt = self.client.data_base.db.child("users").child(ctx.author.name).child("shiny").get().val()["pokemon"]
-			streak = self.client.data_base.db.child("users").child(ctx.author.name).child("shiny").get().val()["streak"]
+			shiny_hunt = self.client.data_base.db.child("users").child(ctx.author.id).child("shiny").get().val()["pokemon"]
+			streak = self.client.data_base.db.child("users").child(ctx.author.id).child("shiny").get().val()["streak"]
 		except TypeError:
 			shiny_hunt = None
 			streak = 0
@@ -91,7 +91,7 @@ class shinyhunt(commands.Cog):
 				return
 
 		#Store data in database
-		self.client.data_base.db.child("users").child(ctx.author.name).child("shiny").update(shiny_hunt_data)
+		self.client.data_base.db.child("users").child(ctx.author.id).child("shiny").update(shiny_hunt_data)
 		await ctx.send(f"<@{ctx.author.id}> your shiny hunt data is set.")
 
 	#Returns users and their shiny hunt pokemon
@@ -104,9 +104,9 @@ class shinyhunt(commands.Cog):
 
 		shinies = {}
 
-		for user, data in users.items():
+		for user_id, data in users.items():
 			try:
-				shinies[data["id"]] = {"name": user, "pokemon": data["shiny"]["pokemon"]}
+				shinies[user_id] = {"name": data["name"], "pokemon": data["shiny"]["pokemon"]}
 			except KeyError:
 				continue
 
@@ -115,9 +115,9 @@ class shinyhunt(commands.Cog):
 		return(shinies)
 
 	#Updates shiny hunt streak by one
-	async def update_streak(self, name):
-		streak = self.client.data_base.db.child("users").child(name).child("shiny").get().val()["streak"]
-		self.client.data_base.db.child("users").child(name).child("shiny").update({"streak": int(streak)+1})
+	async def update_streak(self, user_id):
+		streak = self.client.data_base.db.child("users").child(user_id).child("shiny").get().val()["streak"]
+		self.client.data_base.db.child("users").child(user_id).child("shiny").update({"streak": int(streak)+1})
 
 def setup(client):
 	client.add_cog(shinyhunt(client))
