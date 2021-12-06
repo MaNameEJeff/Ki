@@ -6,8 +6,11 @@ from discord_slash import cog_ext
 from discord_slash.utils.manage_components import create_button, create_actionrow
 from discord_slash.model import ButtonStyle
 from discord import Color
+
 from cogs import shinyhunt
 from cogs import automated
+from cogs import userlist
+
 import random
 
 class catching(commands.Cog):
@@ -15,7 +18,9 @@ class catching(commands.Cog):
 		self.client = client
 		self.shiny_hunt = shinyhunt.shinyhunt(self.client)
 		self.automated_account = automated.automated(self.client)
+		self.user_list = userlist.userlist(self.client)
 		self.hint = ""
+		self.catcher_ids = []
 
 	#Take a hint from PokeTwo
 	async def take_hint(self):
@@ -108,7 +113,15 @@ class catching(commands.Cog):
 
 			#If the pokemon is being shiny hunted by someone mention them and stop spam
 			if(len(users_shiny_hunts) == 0):
-				#Otherwise ask an automated account to catch it
+
+				#Check if it is a shiny hunt of an automated account
+				for master_id, master in dict(self.client.data_base.db.child("automated").get().val()).items():
+					if(name == master["slave"]["shiny"]["pokemon"]):
+						await self.client.command_channel.send(f"{master['slave']['name']} pokemon {name}")
+						await self.shiny_hunt.update_streak(master["slave"]["id"], True)
+						return
+
+				#Otherwise ask a random account to catch it
 				chosen_slave = (random.choices(self.client.available_slaves, k=1))[0]
 				await self.client.command_channel.send(f"{chosen_slave['name']} pokemon {name}")
 				await self.automated_account.update_list(chosen_slave['name'], chosen_slave['master'])
@@ -117,6 +130,7 @@ class catching(commands.Cog):
 				m = ""
 				for user in users_shiny_hunts:
 					m += f'<@{user["id"]}>' + ", "
+					self.catcher_ids.append(user["id"])
 	
 				m = m[:-2]
 				m += " you're shiny hunting this pokemon"
@@ -124,11 +138,13 @@ class catching(commands.Cog):
 				await self.client.command_channel.send("Stop Spam")
 				await self.client.spawn_channel.send(m)
 				await self.client.spawn_channel.send("Session terminated")
+				await self.check_caught_message(name)
 
 		else:
 			m = "Wait "
 			for user in uncaught:
 				m += f'<@{user["id"]}>' + ", "
+				self.catcher_ids.append(user["id"])
 
 			m = m[:-2]
 			m += " need to catch this"
@@ -136,9 +152,46 @@ class catching(commands.Cog):
 			await self.client.command_channel.send("Stop Spam")
 			await self.client.spawn_channel.send(m)
 			await self.client.spawn_channel.send("Session terminated")
+			await self.check_caught_message(name)
 
 		#Return the name of the pokemon as that Muxus can download the image
 		return name
+
+	#Get data from the caught message that PokeTwo sends and update lists respectively
+	async def check_caught_message(self, name):
+
+		count=0
+		#Function to check if message is from Poketwo
+		def checkP2(m):
+			return (m.author.id == self.client.poketwo_id)
+
+		#Return if caught message is not found
+		while True:
+			caught_message = await self.client.wait_for('message', check=checkP2)
+			if(("Congratulations" in caught_message.content) or (count > 5)):
+				break
+			count += 1
+
+		if(count>5):
+			await self.client.spawn_channel.send("User data could not be updated automatically. [No caught message found]")
+			return
+
+		#Get the user who caught the pokemon and check if he/she was one of the users who HAD to catch it
+		user_id = (caught_message.content.split(" ")[1])[3:-2]
+		user_id = int(user_id)
+
+		if(user_id not in self.catcher_ids):
+			await self.client.spawn_channel.send(f":upside_down:\n<@!{user_id}> why?")
+			return
+
+		#Update user list in database
+		content = caught_message.content.split(" ")[7:]
+		if("Shiny" in content):
+			await self.shiny_hunt.update_streak(user_id)
+			await self.client.spawn_channel.send(f"<@{user_id}> your streak has been updated")
+		else:
+			await self.user_list.update_list(user_id, name)
+			await self.client.spawn_channel.send(f"<@{user_id}>, {name} has been removed from your list")
 
 	#Toggle whether to mention the user if he has no list
 	@cog_ext.cog_component()

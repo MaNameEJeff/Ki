@@ -26,10 +26,4 @@ class database():
 			winston = self.auth.sign_in_with_email_and_password("winstonemail@winston.com", "passwordwinston")
 		except:
 			winston = self.auth.create_user_with_email_and_password("winstonemail@winston.com", "passwordwinston")
-
-	#Add another account that can be automated
-	def add_automated_accounts(self, account_name, account_id, shiny, uncaught_list):
-		self.db.child("automated-accounts").child(account_name).update({"id": account_id})
-		self.db.child("automated-accounts").child(account_name).child("shiny").update({"pokemon": shiny})
-		self.db.child("automated-accounts").child(account_name).child("list").update({"pokemon_list": uncaught_list})
 		

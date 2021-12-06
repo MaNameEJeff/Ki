@@ -43,19 +43,20 @@ async def on_ready():
 					client.bot_trade_channel = text_channel
 
 	#Initialize ids
-	client.moto_id = 730020582393118730
-	client.ganther_id = 730028657581490176
-	client.jeff_id = 730023436939952139
-	client.spex_id = 729997258656972820
 	client.poketwo_id = 716390085896962058
 
 	client.available_slaves = []
-	client.authorized = [client.jeff_id, client.moto_id]
+	client.authorized = []
 
 	#Initialize objects
 	client.catch = catching.catching(client)
 	client.data_base = database()
 	client.user_list_menu = UserListMenu()
+
+	#Authorized users who can add other accounts that can be automated
+	for user, data in dict(client.data_base.db.child("users").get().val()).items():
+		if((data["name"] == "MotoMoto") or (data["name"] == "MaNameEJeff")):
+			client.authorized.append(int(user))
 
 	print('ready')
 

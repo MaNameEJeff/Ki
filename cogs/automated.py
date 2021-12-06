@@ -149,14 +149,14 @@ class automated(commands.Cog):
 			names.append(slave["name"])
 
 		#Close all accounts
-		if(account == 'all'):
+		if(account == 'All'):
 			await ctx.send('Closing all accounts...')
 			for name in names:
 				await self.client.command_channel.send(f'{name} Leave')
 				time.sleep(1)
 			await self.client.command_channel.purge(limit=1000)
 			self.client.available_slaves = []
-			await ctx.send('All accounts are now offline')
+			await ctx.send('All accounts are now offline. Discord may take a while to update status')
 
 		#Close respective account
 		else:
@@ -172,7 +172,7 @@ class automated(commands.Cog):
 			for slave in self.client.available_slaves:
 				if(slave["name"] == account):
 					self.client.available_slaves.remove(slave)
-			await ctx.send(f'{account} is now offline')
+			await ctx.send(f'{account} is now offline. Discord may take a while to update status')
 
 	#Get the pokemon that the account is shiny hunting along with the current streak
 	async def get_automated_account_shiny(self, name, linked_main_account_id):
@@ -292,12 +292,14 @@ class automated(commands.Cog):
 
 		await ctx.send(f"<@{ctx.author.id}> your account {name} can now be automated")
 
+	#Update account list with pokemon caught
 	async def update_list(self, catcher, linked_main_account_id):
 
 		#Function to check if message is from PokeTwo and if it is in the spam channel
 		def checkP2(m):
 			return ((m.author.id == self.client.poketwo_id) and (m.channel.name == "spam"))
 
+		#Get details of the pokemon caught
 		await self.client.command_channel.send(f"{catcher} #spam Say ?i l")
 		pokemon_info = await self.client.wait_for('message', check=checkP2)
 		pokemon_info = pokemon_info.embeds[0].to_dict()
@@ -317,7 +319,31 @@ class automated(commands.Cog):
 			if(field["name"] == "Stats"):
 				poke["iv"] = field["value"][field["value"].rindex(" ")+1:]
 
+		#Upload pokemon with details to database
 		self.client.data_base.db.child("automated").child(linked_main_account_id).child("slave").child("list").child(number).update(poke)
+
+	#Clear the existing pokemon list and store the updated one. Use whenever large number of pokemon are removed from the automated account.
+	#Single updates happen automatically
+	@cog_ext.cog_slash(	name="restore_list",
+						guild_ids=server_ids,
+						description="Clears and stores the correct list of automated account on database.",
+					  )
+	async def restore_list(self, ctx, account_name, linked_main_account_id):
+		if((ctx.author.id not in self.client.authorized)):
+			await ctx.send("You are not authorized to use this command")
+			return
+
+		names = []
+		for slave in self.client.available_slaves:
+			names.append(slave["name"])
+		if(account_name not in names):
+			await ctx.send(f"{account_name} is not online")
+			return
+
+		await ctx.send("Storing the pokemon list again. This may take a while...")
+		self.client.data_base.db.child("automated").child(linked_main_account_id).child("slave").child("list").remove()
+		await self.get_pokemon(account_name, linked_main_account_id)
+		await ctx.send("Finished")
 
 def setup(client):
 	client.add_cog(automated(client))

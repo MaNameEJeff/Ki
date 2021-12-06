@@ -19,35 +19,35 @@ class trading(commands.Cog):
 		self.pokemon_traded = []
 		self.context = None
 
-	@cog_ext.cog_slash(	name="trading",
-						guild_ids=server_ids,
-						description="Trade with any automated account",
-						options = [
-							create_option(
-								name="transaction",
-								description="The type of trade you want to initiate",
-								option_type=3,
-								required=False,
-								choices=[
-									create_choice(
-										name="Trade pokemon for a better ones",
-										value="better"
-									),
-									create_choice(
-										name="Trade away any duplicates from given pokemon",
-										value="duplicates"
-									)
-								]
-							),
-							create_option(
-								name="wares",
-								description="Show Pokemon (All filters in PokeTwo are supported. 'all' will show all pokemon)",
-								option_type=3,
-								required=False,
-							)
-						]
-					  )
-
+#	@cog_ext.cog_slash(	name="trading",
+#						guild_ids=server_ids,
+#						description="Trade with any automated account",
+#						options = [
+#							create_option(
+#								name="transaction",
+#								description="The type of trade you want to initiate",
+#								option_type=3,
+#								required=False,
+#								choices=[
+#									create_choice(
+#										name="Trade pokemon for a better ones",
+#										value="better"
+#									),
+#									create_choice(
+#										name="Trade away any duplicates from given pokemon",
+#										value="duplicates"
+#									)
+#								]
+#							),
+#							create_option(
+#								name="wares",
+#								description="Show Pokemon (All filters in PokeTwo are supported. 'all' will show all pokemon)",
+#								option_type=3,
+#								required=False,
+#							)
+#						]
+#					  )
+#
 	async def trading(self, ctx, transaction=None, wares=None):
 
 		if(len(self.client.available_slaves) == False):

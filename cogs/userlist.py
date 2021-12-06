@@ -149,6 +149,27 @@ class userlist(commands.Cog):
 		await ctx.send(f"<@{ctx.author.id}> your list is")
 		self.client.user_list_menu.set_data(data=pages)
 		await self.client.user_list_menu.start(ctx)
+
+	#Update user's list of pokemon
+	async def update_list(self, user_id, pokemon):
+
+		#Get original list
+		user_list = self.client.data_base.db.child("users").child(user_id).child("list").get().val()
+		self.client.data_base.db.child("users").child(user_id).child("list").remove()
+
+		#Remove the caught pokemon
+		user_list.remove(None)
+		user_list.remove(pokemon)
+
+		#Convert list to dict and upload to database
+		count = 1
+		list_data = {}
+
+		#Store user's list in database
+		for pokemon in user_list:
+			list_data[count] = pokemon.replace(" ", "")
+			count += 1
+		self.client.data_base.db.child("users").child(user_id).child("list").update(list_data)
 			
 def setup(client):
 	client.add_cog(userlist(client))
