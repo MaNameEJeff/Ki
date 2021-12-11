@@ -122,7 +122,14 @@ class userlist(commands.Cog):
 		
 		#Create the embeds and set the values
 		pages = []
-		page = discord.Embed(title=f"**{ctx.author.name}'s List**", description='Ki will mention you if a pokemon from this list spawns')
+
+		#Set description based on whether the user is tracking his uncaught or not
+		if(dict(self.client.data_base.db.child("users").child(ctx.author.id).get().val())["track_uncaught"] == "True"):
+			description = 'Ki will mention you if a pokemon from this list spawns'
+		else:
+			description = '***Ki is not tracking your uncaught pokemon***. Use the /track command to start tracking'
+
+		page = discord.Embed(title=f"**{ctx.author.name}'s List**", description=description)
 		if(24 > len(user_list)):
 			page.set_footer(text=f"Showing entries 1-{len(user_list)} out of {len(user_list)}")
 		else:

@@ -14,6 +14,10 @@ from cogs import userlist
 import random
 
 class catching(commands.Cog):
+
+	#The servers in which the slash commands in this cog can be used
+	server_ids = [760880935557398608]
+
 	def __init__(self, client):
 		self.client = client
 		self.shiny_hunt = shinyhunt.shinyhunt(self.client)
@@ -100,8 +104,9 @@ class catching(commands.Cog):
 				button_text = "Mention Me"
 				text = f"{data['name']}"
 
+			#If the pokemon is in user's list and if they want to track their uncaught pokemon, add them to the uncaught list
 			try:
-				if name in data["list"]:
+				if((name in data["list"]) and (data["track_uncaught"] == "True")):
 					uncaught.append({"name": data["name"], "id": user})
 			except:
 				await self.client.spawn_channel.send(f"{text} you haven't made a list yet! Use the /mylist command to make one.", components=[
@@ -152,7 +157,11 @@ class catching(commands.Cog):
 			m += " need to catch this"
 
 			await self.client.command_channel.send("Stop Spam")
-			await self.client.spawn_channel.send(m)
+			await self.client.spawn_channel.send(m, components=[
+                                    					create_actionrow(
+                                        					create_button(style=ButtonStyle.green, label="Don't Track My Uncaught Pokemon", custom_id="dont_track_uncaught")
+                                        				)
+                                    				  ])
 			await self.client.spawn_channel.send("Session terminated")
 			await self.check_caught_message(name)
 
@@ -212,6 +221,21 @@ class catching(commands.Cog):
 		else:
 			text = ""
 		await ctx.send(f"Ki will {text} mention you if you happen to have no list saved")
+
+	#Stop tracking user's uncaught pokemon
+	@cog_ext.cog_component()
+	async def dont_track_uncaught(self, ctx):
+		self.client.data_base.db.child("users").child(ctx.author.id).update({"track_uncaught": "False"})
+		await ctx.send(f"Ki is not tracking your uncaught pokemon anymore <@{ctx.author.id}>.\n***Use the /track command to start tracking again***")
+
+	#Start tracking user's uncaught pokemon again
+	@cog_ext.cog_slash( name="track",
+						guild_ids=server_ids,
+						description="Start tracking uncaught pokemon"
+					  )
+	async def track(self, ctx):
+		self.client.data_base.db.child("users").child(ctx.author.id).update({"track_uncaught": "True"})
+		await ctx.send(f"Ki is now tracking your uncaught pokemon <@{ctx.author.id}>.")
 
 def setup(client):
 	client.add_cog(catching(client))
