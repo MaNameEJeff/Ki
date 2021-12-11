@@ -11,33 +11,35 @@ import time
 
 class automated(commands.Cog):
 
+	#The servers in which the slash commands in this cog can be used
 	server_ids = [760880935557398608]
 
 	def __init__(self, client):
 		self.client = client
-	
-	#Updates account status
+
+	#Checks if any automated accounts are online and if they are available
 	@cog_ext.cog_slash( name="check_account_status",
 						guild_ids=server_ids,
-						description="Updates status of accounts that can be automated"
+						description="Checks for any accounts that can be automated"
 					  )
 	async def check_account_status(self, ctx):
 
-		#Get the accounts registered in database
+		#Get the accounts that are registered in database and store their ids
 		automated_accounts = dict(self.client.data_base.db.child("automated").get().val())
 		account_ids = []
 		for account in automated_accounts:
 			account_ids.append(int(account))
 
-		#Check their status on the Winston's server and if they're online append them to the available_slaves client attribute
+		#Check their status on the Winston's server and if they're online append them to the available_slaves client attribute, along with the id of their master
 		for guild in self.client.guilds:
 			if(guild.name == "Winston's server"):
 				for account_id in account_ids:
-					if((str(guild.get_member(account_id).status) == "online") and (automated_accounts[str(account_id)]["slave"] not in self.client.available_slaves)):
+					if(str(guild.get_member(account_id).status) == "online"):
 						automated_accounts[str(account_id)]["slave"]["master"] = account_id
-						self.client.available_slaves.append(automated_accounts[str(account_id)]["slave"])
+						if(automated_accounts[str(account_id)]["slave"] not in self.client.available_slaves):
+							self.client.available_slaves.append(automated_accounts[str(account_id)]["slave"])
 
-		#Confirmation
+		#Send confirmation
 		if(len(self.client.available_slaves) == 0):
 			await ctx.send("No account is online")
 		else:
@@ -78,9 +80,9 @@ class automated(commands.Cog):
 
 	async def spam(self, ctx, spam_tasks):
 
-		#Function to check if message is from Poketwo
+		#Function to check if message is from the same user that issued the command
 		def check(m):
-			return m.channel == ctx.channel
+			return ((m.channel == ctx.channel) and (m.author.id == ctx.author.id))
 
 		if(len(self.client.available_slaves) == 0):
 			await ctx.send('Sorry no account is online...')
@@ -148,7 +150,7 @@ class automated(commands.Cog):
 		for slave in self.client.available_slaves:
 			names.append(slave["name"])
 
-		#Close all accounts
+		#Close all accounts and clear the command channel
 		if(account == 'All'):
 			await ctx.send('Closing all accounts...')
 			for name in names:
@@ -189,13 +191,10 @@ class automated(commands.Cog):
 
 		#Try to get the shiny hunt data. If the account currently has no shiny hunt, return
 		for field in fields:
-			try:
-				if(field["name"] == "Currently Hunting"):
-					shiny_hunt_data["pokemon"] = field["value"]
-				elif(field["name"] == "Chain"):
-					shiny_hunt_data["streak"] = int(field["value"])
-			except:
-				return
+			if(field["name"] == "Currently Hunting"):
+				shiny_hunt_data["pokemon"] = field["value"]
+			elif(field["name"] == "Chain"):
+				shiny_hunt_data["streak"] = int(field["value"])
 
 		#Store data in database
 		self.client.data_base.db.child("automated").child(linked_main_account_id).child("slave").child("shiny").update(shiny_hunt_data)
@@ -216,7 +215,7 @@ class automated(commands.Cog):
 		pokemon = []
 
 		#Extract pokemon data and move to next page of pokedex if it exists
-		for _ in range(math.ceil(number_of_pokemon/20)-1):
+		for i in range(math.ceil(number_of_pokemon/20)):
 			pokedex = pokedex["description"]
 			pokedex = pokedex.split("\n")
 			for pokemon_data in pokedex:
@@ -227,9 +226,12 @@ class automated(commands.Cog):
 					"iv": pokemon_data[pokemon_data.rindex("•")+2:]	
 				}
 				pokemon.append(current_pokemon)
-			await self.client.command_channel.send(f"{name} #spam Say ?n")
-			pokedex = await self.client.wait_for('message', check=checkP2)
-			pokedex = pokedex.embeds[0].to_dict()
+
+			#If its the last page don't ask Winston to go to the next page
+			if(i != math.ceil(number_of_pokemon/20)-1):
+				await self.client.command_channel.send(f"{name} #spam Say ?n")
+				pokedex = await self.client.wait_for('message', check=checkP2)
+				pokedex = pokedex.embeds[0].to_dict()
 
 		#Store list in database
 		for poke in pokemon:
@@ -322,25 +324,31 @@ class automated(commands.Cog):
 		#Upload pokemon with details to database
 		self.client.data_base.db.child("automated").child(linked_main_account_id).child("slave").child("list").child(number).update(poke)
 
-	#Clear the existing pokemon list and store the updated one. Use whenever large number of pokemon are removed from the automated account.
+	#Clear the existing pokemon list and store the updated one.
+	#Use whenever large number of pokemon are removed from the automated account.
 	#Single updates happen automatically
 	@cog_ext.cog_slash(	name="restore_list",
 						guild_ids=server_ids,
 						description="Clears and stores the correct list of automated account on database.",
 					  )
-	async def restore_list(self, ctx, account_name, linked_main_account_id):
-		if((ctx.author.id not in self.client.authorized)):
-			await ctx.send("You are not authorized to use this command")
-			return
+	async def restore_list(self, ctx=None, account_name=None, linked_main_account_id=None):
 
 		names = []
 		for slave in self.client.available_slaves:
 			names.append(slave["name"])
-		if(account_name not in names):
-			await ctx.send(f"{account_name} is not online")
-			return
 
-		await ctx.send("Storing the pokemon list again. This may take a while...")
+		#If this is used as a slash command, perform some checks
+		if(ctx != None):
+			if((ctx.author.id not in self.client.authorized)):
+				await ctx.send("You are not authorized to use this command")
+				return
+
+			if(account_name not in names):
+				await ctx.send(f"{account_name} is not online")
+				return
+
+			await ctx.send("Storing the pokemon list again. This may take a while...")
+
 		self.client.data_base.db.child("automated").child(linked_main_account_id).child("slave").child("list").remove()
 		await self.get_pokemon(account_name, linked_main_account_id)
 		await ctx.send("Finished")

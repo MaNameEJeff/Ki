@@ -119,6 +119,7 @@ class userlist(commands.Cog):
 			return
 
 		pokemon_number = len(user_list)
+		
 		#Create the embeds and set the values
 		pages = []
 		page = discord.Embed(title=f"**{ctx.author.name}'s List**", description='Ki will mention you if a pokemon from this list spawns')
@@ -158,7 +159,6 @@ class userlist(commands.Cog):
 		self.client.data_base.db.child("users").child(user_id).child("list").remove()
 
 		#Remove the caught pokemon
-		user_list.remove(None)
 		user_list.remove(pokemon)
 
 		#Convert list to dict and upload to database
@@ -167,7 +167,9 @@ class userlist(commands.Cog):
 
 		#Store user's list in database
 		for pokemon in user_list:
-			list_data[count] = pokemon.replace(" ", "")
+			if(pokemon == None):
+				continue
+			list_data[count] = pokemon
 			count += 1
 		self.client.data_base.db.child("users").child(user_id).child("list").update(list_data)
 			

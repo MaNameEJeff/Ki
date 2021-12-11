@@ -10,6 +10,7 @@ import math
 
 class shinyhunt(commands.Cog):
 
+	#The servers in which the slash commands in this cog can be used
 	server_ids = [760880935557398608]
 
 	def __init__(self, client):
@@ -30,6 +31,7 @@ class shinyhunt(commands.Cog):
 			shiny_hunt = None
 			streak = 0
 
+		#Calculate percentage of increase of chances of catching a shiny due to shiuny hunt streak
 		percentage = ((1 + math.log(1 + streak/30)) / 4096)*100
 
 		#Create the Embed and decorate it
@@ -45,7 +47,7 @@ class shinyhunt(commands.Cog):
 			button_text = "Set It"
 		else:
 			shiny_embed.description = f"Ki will mention you if a **{shiny_hunt}** spawns"
-			URL = self.client.data_base.storage.child(f"Images/{shiny_hunt}/pokemon.png").get_url(token=None)
+			URL = self.client.data_base.storage.child(f"Images/{shiny_hunt}/pokemon.png").get_url(token=None) #The url of the pokemon image on database
 			shiny_embed.set_thumbnail(url=URL)
 			button_text = "Change It Or Update My Streak"
 
@@ -67,6 +69,7 @@ class shinyhunt(commands.Cog):
 		def checkP2(m):
 			return m.author.id == self.client.poketwo_id
 
+		#Get shiny hunt message from user
 		while True:
 			await ctx.send(f"<@{ctx.author.id}> do ?sh")
 			message = await self.client.wait_for('message', check=check)
@@ -81,20 +84,19 @@ class shinyhunt(commands.Cog):
 
 		for field in fields:
 
-			try:
-				if(field["name"] == "Currently Hunting"):
-					shiny_hunt_data["pokemon"] = field["value"]
-				elif(field["name"] == "Chain"):
-					shiny_hunt_data["streak"] = int(field["value"])
-			except:
-				await ctx.send("It seems you currently don't have a shiny hunt...")
-				return
+			if(field["name"] == "Currently Hunting"):
+				if(field["value"] == "Type `?shinyhunt <pokémon>` to begin!"):
+					await ctx.send("It seems you currently don't have a shiny hunt...")
+					return
+				shiny_hunt_data["pokemon"] = field["value"]
+			elif(field["name"] == "Chain"):
+				shiny_hunt_data["streak"] = int(field["value"])
 
 		#Store data in database
 		self.client.data_base.db.child("users").child(ctx.author.id).child("shiny").update(shiny_hunt_data)
 		await ctx.send(f"<@{ctx.author.id}> your shiny hunt data is set.")
 
-	#Returns users and their shiny hunt pokemon
+	#Returns users and their shiny hunted pokemon
 	async def get_shinies(self):
 
 		try:

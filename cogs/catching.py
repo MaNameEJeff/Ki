@@ -45,10 +45,12 @@ class catching(commands.Cog):
 
 			await self.take_hint()
 	
+			#Shorten the search to pokemon with the same number of letters as the hint
 			for pokemon in self.client.pokemon_in_game:
 				if(len(pokemon) == len(self.hint)):
 					possible_pokemon.append(pokemon)
 	
+			#Find out what pokemon it is by comparing the letters shown in hint with the names of the pokemon
 			letter_count = 0
 			while(letter_count < len(self.hint)):
 				if(self.hint[letter_count] != "_"):
@@ -60,7 +62,7 @@ class catching(commands.Cog):
 						count += 1
 				letter_count += 1
 
-			#If there's more than one possibility take another hint
+			#If there's more than one possibility take another hint and try again
 			if(len(possible_pokemon) > 1):
 				continue
 			break
@@ -70,7 +72,6 @@ class catching(commands.Cog):
 	async def is_being_shiny_hunted(self, name):
 
 		shiny_hunts = []
-
 		is_a_shiny_hunt = await self.shiny_hunt.get_shinies()
 
 		if(is_a_shiny_hunt == None):
@@ -90,6 +91,7 @@ class catching(commands.Cog):
 		name = await self.what_pokemon()
 		users = dict(self.client.data_base.db.child("users").get().val())
 	
+		#Mention the user if they have no list. If they have specified otherwise, don't
 		for user, data in users.items():
 			if(data["mention_if_no_list"] == "True"):
 				button_text = "Don't Mention Me"
@@ -100,13 +102,13 @@ class catching(commands.Cog):
 
 			try:
 				if name in data["list"]:
-					uncaught.append({"name": user, "id": data["id"]})
+					uncaught.append({"name": data["name"], "id": user})
 			except:
-				await self.client.spawn_channel.send(f"{text} you haven't made a list yet!", components=[
-                                    																	create_actionrow(
-                                        																	create_button(style=ButtonStyle.green, label=button_text, custom_id="mention_user")
-                                        																)
-                                    																  ])
+				await self.client.spawn_channel.send(f"{text} you haven't made a list yet! Use the /mylist command to make one.", components=[
+                                    																								create_actionrow(
+                                        																								create_button(style=ButtonStyle.green, label=button_text, custom_id="mention_user")
+                                        																							)
+                                    																							  ])
 		#If somebody still has to catch it mention them and stop spam.
 		if(len(uncaught) == 0):
 			users_shiny_hunts = await self.is_being_shiny_hunted(name)
@@ -130,7 +132,7 @@ class catching(commands.Cog):
 				m = ""
 				for user in users_shiny_hunts:
 					m += f'<@{user["id"]}>' + ", "
-					self.catcher_ids.append(user["id"])
+					self.catcher_ids.append(int(user["id"]))
 	
 				m = m[:-2]
 				m += " you're shiny hunting this pokemon"
@@ -144,7 +146,7 @@ class catching(commands.Cog):
 			m = "Wait "
 			for user in uncaught:
 				m += f'<@{user["id"]}>' + ", "
-				self.catcher_ids.append(user["id"])
+				self.catcher_ids.append(int(user["id"]))
 
 			m = m[:-2]
 			m += " need to catch this"
@@ -160,12 +162,13 @@ class catching(commands.Cog):
 	#Get data from the caught message that PokeTwo sends and update lists respectively
 	async def check_caught_message(self, name):
 
-		count=0
 		#Function to check if message is from Poketwo
 		def checkP2(m):
 			return (m.author.id == self.client.poketwo_id)
 
-		#Return if caught message is not found
+		count=0
+
+		#Return if caught message is found within 7 messages
 		while True:
 			caught_message = await self.client.wait_for('message', check=checkP2)
 			if(("Congratulations" in caught_message.content) or (count > 5)):
@@ -177,7 +180,7 @@ class catching(commands.Cog):
 			return
 
 		#Get the user who caught the pokemon and check if he/she was one of the users who HAD to catch it
-		user_id = (caught_message.content.split(" ")[1])[3:-2]
+		user_id = (caught_message.content.split(" ")[1])[2:-2]
 		user_id = int(user_id)
 
 		if(user_id not in self.catcher_ids):
