@@ -53,6 +53,9 @@ class userlist(commands.Cog):
 		#Function to check if message is from Poketwo
 		def check(m):
 			return m.author.id == self.client.poketwo_id
+
+		#Clear existing list
+		self.client.data_base.db.child("users").child(ctx.author.id).child("list").remove()
 	
 		list_of_pokemon = []
 		count = 0
