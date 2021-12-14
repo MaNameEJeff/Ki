@@ -12,6 +12,7 @@ from cogs import automated
 from cogs import userlist
 
 import random
+import os
 
 class catching(commands.Cog):
 
@@ -25,6 +26,7 @@ class catching(commands.Cog):
 		self.user_list = userlist.userlist(self.client)
 		self.hint = ""
 		self.catcher_ids = []
+		self.possible_pokemon = []
 
 	#Take a hint from PokeTwo
 	async def take_hint(self):
@@ -43,34 +45,39 @@ class catching(commands.Cog):
 	#Find out what Pokemon it is by comparing the hint with the names of pokemon
 	async def what_pokemon(self):
 
-		possible_pokemon = []
+		self.possible_pokemon = []
+		first_hint = True
 
 		while True:
 
 			await self.take_hint()
 	
-			#Shorten the search to pokemon with the same number of letters as the hint
-			for pokemon in self.client.pokemon_in_game:
-				if(len(pokemon) == len(self.hint)):
-					possible_pokemon.append(pokemon)
+			if(first_hint):
+				#Shorten the search to pokemon with the same number of letters as the hint
+				for pokemon in self.client.pokemon_in_game:
+					if(len(pokemon) == len(self.hint)):
+						self.possible_pokemon.append(pokemon)
 	
 			#Find out what pokemon it is by comparing the letters shown in hint with the names of the pokemon
 			letter_count = 0
 			while(letter_count < len(self.hint)):
 				if(self.hint[letter_count] != "_"):
 					count = 0
-					while (count < len(possible_pokemon)):
-						if(possible_pokemon[count][letter_count] != self.hint[letter_count]):
-							possible_pokemon.remove(possible_pokemon[count])
+					while (count < len(self.possible_pokemon)):
+						if(self.possible_pokemon[count][letter_count] != self.hint[letter_count]):
+							self.possible_pokemon.remove(self.possible_pokemon[count])
 							count -= 1
 						count += 1
 				letter_count += 1
 
 			#If there's more than one possibility take another hint and try again
-			if(len(possible_pokemon) > 1):
+			if(len(self.possible_pokemon) > 1):
+				await self.client.spawn_channel.send(f"Found {len(self.possible_pokemon)} possible pokemon")
+				await self.client.spawn_channel.send(", ".join(self.possible_pokemon))
+				first_hint = False
 				continue
 			break
-		return possible_pokemon[0]
+		return self.possible_pokemon[0]
 
 	#Check if the pokemon is being shiny hunted
 	async def is_being_shiny_hunted(self, name):
@@ -180,7 +187,10 @@ class catching(commands.Cog):
 		#Return if caught message is found within 7 messages
 		while True:
 			caught_message = await self.client.wait_for('message', check=checkP2)
-			if(("Congratulations" in caught_message.content) or (count > 5)):
+			caught_message = caught_message.content
+			caught_message = caught_message.replace("!", "")
+			caught_message = caught_message.replace("**", "")
+			if(("Congratulations" in caught_message) or (count > 5)):
 				break
 			count += 1
 
@@ -189,7 +199,7 @@ class catching(commands.Cog):
 			return
 
 		#Get the user who caught the pokemon and check if he/she was one of the users who HAD to catch it
-		user_id = (caught_message.content.split(" ")[1])[2:-2]
+		user_id = caught_message[caught_message.index("@")+1:caught_message.index(">")]
 		user_id = int(user_id)
 
 		if(user_id not in self.catcher_ids):
@@ -197,9 +207,9 @@ class catching(commands.Cog):
 			return
 
 		#Update user list in database
-		content = caught_message.content.split(" ")[7:]
-		if("Shiny" in content):
-			await self.shiny_hunt.update_streak(user_id)
+		if("Shiny" in caught_message):
+			streak = int(caught_message[caught_message.index("(")+1:caught_message.index(")")])
+			await self.shiny_hunt.update_streak(user_id, streak)
 			await self.client.spawn_channel.send(f"<@{user_id}> your streak has been updated")
 		else:
 			await self.user_list.update_list(user_id, name)

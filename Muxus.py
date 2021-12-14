@@ -83,6 +83,14 @@ async def downloadImage(URL, directory):
 	if(directory == directory[:directory.rindex("/")] + "Type: Null"):
 		directory = directory[:directory.rindex("/")] + "Type Null"
 
+	#If image is of a nidoran variant, replace the symbols with text
+	if("Nidoran" in directory):
+		print(directory)
+		if("♀️" in directory):
+			directory = directory[:directory.rindex("/")+1]+"NidoranFemale"
+		else:
+			directory = directory[:directory.rindex("/")+1]+"NidoranMale"
+
 	folders = os.listdir(directory[:directory.rindex("/")])
 
 	for folder in folders:

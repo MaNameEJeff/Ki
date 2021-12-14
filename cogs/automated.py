@@ -202,9 +202,9 @@ class automated(commands.Cog):
 	#Get the pokemon that the automated account has already caught and store them in the database
 	async def get_pokemon(self, name, linked_main_account_id):
 
-		#Function to check if message is from PokeTwo
+		#Function to check if message is from PokeTwo and in spam channel
 		def checkP2(m):
-			return m.author.id == self.client.poketwo_id
+			return ((m.author.id == self.client.poketwo_id) and (m.channel.name == "spam"))
 
 		#Get the pokedex of account and get the number of pokemon
 		await self.client.command_channel.send(f"{name} #spam Say ?p")
@@ -231,7 +231,15 @@ class automated(commands.Cog):
 			if(i != math.ceil(number_of_pokemon/20)-1):
 				await self.client.command_channel.send(f"{name} #spam Say ?n")
 				pokedex = await self.client.wait_for('message', check=checkP2)
-				pokedex = pokedex.embeds[0].to_dict()
+				try:
+					pokedex = pokedex.embeds[0].to_dict()
+				except IndexError:
+
+					#If menu has become unresponsive, open another menu and skip to the current page
+					page = int(len(pokemon)/20)+1
+					await self.client.command_channel.send(f"{name} #spam Say ?p {page}")
+					pokedex = await self.client.wait_for('message', check=checkP2)
+					pokedex = pokedex.embeds[0].to_dict()
 
 		#Store list in database
 		for poke in pokemon:
@@ -246,31 +254,35 @@ class automated(commands.Cog):
 						options=[
 							create_option(
 								name="name",
-								description="Account Name",
+								description="Name of the account that is to be automated",
 								option_type=3,
 								required=True
 							),
 							create_option(
 								name="accountid",
-								description="Account Id",
+								description="The id of the account that is to be automated",
 								option_type=3,
 								required=True
 							),
 							create_option(
 								name="linked_main",
-								description="Main Account to which this account is linked",
+								description="The name of the main account to which this account is linked (BOT NAME)",
 								option_type=3,
 								required=True,
 							),
 							create_option(
 								name="linked_main_account_id",
-								description="The shiny hunt of this account",
+								description="The id of the main account to which this account is linked (BOT ID)",
 								option_type=3,
 								required=True
 							)
 						]
 					  )
 	async def addAccount(self, ctx, name, accountid, linked_main, linked_main_account_id):
+
+		#Function to check if message is from PokeTwo
+		def checkP2(m):
+			return m.author.id == self.client.poketwo_id
 
 		if((ctx.author.id not in self.client.authorized)):
 			await ctx.send("You are not authorized to use this command")
@@ -286,6 +298,14 @@ class automated(commands.Cog):
 
 		#Get the pokemon with the account
 		await ctx.send("Storing the pokemon already on this account. This may take a while...")
+
+		#Reindex the pokemon first
+		await self.client.command_channel.send(f"{name} #{ctx.channel.name} Say ?reindex")
+		while True:
+			reindex_confirmation = await self.client.wait_for('message', check=checkP2)
+			if(reindex_confirmation.content == "Successfully reindexed all your pokémon!"):
+				break
+
 		await self.get_pokemon(name, linked_main_account_id)
 
 		#Get the shiny hunted pokemon of the account
