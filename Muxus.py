@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from AutomatedAccount import AutomatedAccount
 import random
+import time
 
 client = commands.Bot(command_prefix = '?')
 
@@ -21,6 +22,12 @@ async def on_ready():
 
 	client.Ki_id = 790492561348886570
 	client.spam_message = "spam"
+
+	client.channel_ids = {
+		"spawn": 792314109625499668,
+		"spam": 890188908091039764
+	}
+
 	print('Ready to serve')
 
 @client.event
@@ -41,19 +48,22 @@ async def on_message(message):
 		elif("Winston" == command[0]):
 			if(command[1] == "pokemon"):
 				pokemon_name = " ".join(command[2:])
-				spam.stop()
+				
+				if(spam.is_running() == True):
+					spam.stop()
 
 				#Ask krenko to catch the pokemon
-				krenko.changeChannel('#pokemon-spawn')
+				if(krenko.current_channel != client.channel_ids["spawn"]):
+					krenko.changeChannel(client.channel_ids["spawn"])
+
 				krenko.say('?c ' + pokemon_name)
-				krenko.changeChannel("#spam")
-				spam.restart()
+
 			elif(command[1] == 'Leave'):
 				await leave()
 
 			#Check if message is from Ki and if it is a spam command
 			elif(command[1] == "spam"):
-				krenko.changeChannel("#spam")
+
 				count = command[2]
 				m = command[3]
 				flag = command[4]
@@ -61,19 +71,23 @@ async def on_message(message):
 				client.spam_message = m
 
 				if(flag == "False"):
-					krenko.changeChannel("#spam")
 					for _ in range(int(count)):
 						krenko.say(m)
 				else:
 					#Ask servants to spam
-					spam.start()
+					if(spam.is_running() == True):
+						spam.restart()
+					else:
+						spam.start()
 
 			elif(command[2] == 'Say'):
-				spam.stop()
-				krenko.changeChannel(command[1])
+				if(spam.is_running() == True):
+					spam.stop()
+
+				if(krenko.current_channel != int(command[1])):
+					krenko.changeChannel(command[1])
+
 				krenko.say(" ".join(command[3:]))
-				krenko.changeChannel("#spam")
-				spam.restart()
 
 	#Runs on_message alongside other commands
 	await client.process_commands(message)
@@ -85,7 +99,6 @@ async def downloadImage(URL, directory):
 
 	#If image is of a nidoran variant, replace the symbols with text
 	if("Nidoran" in directory):
-		print(directory)
 		if("♀️" in directory):
 			directory = directory[:directory.rindex("/")+1]+"NidoranFemale"
 		else:
@@ -93,20 +106,28 @@ async def downloadImage(URL, directory):
 
 	folders = os.listdir(directory[:directory.rindex("/")])
 
+	#Download the image
 	for folder in folders:
 		if (folder == directory[directory.rindex("/")+1:]):
 			count = str(len(os.listdir(directory)) + 1)
 			img_args = f"wget -O {directory}/{count}.png {URL}"
 			os.system(img_args)
 
-	spam.restart()
+	if(spam.is_running() == True):
+		spam.restart()
+	else:
+		spam.start()
 
 #Start a background task of asking accounts to spam
 @tasks.loop(seconds=2)
 async def spam():
 
+	if(krenko.current_channel != client.channel_ids["spam"]):
+		krenko.changeChannel(client.channel_ids["spam"])
+
 	if(krenko.rate_limited == True):
 		await client.command_channel.send('Rate Limited')
+		krenko.rate_limited = False
 	else:
 		krenko.say(client.spam_message)
 

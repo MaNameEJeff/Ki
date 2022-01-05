@@ -13,6 +13,7 @@ from cogs import userlist
 
 import random
 import os
+import time
 
 class catching(commands.Cog):
 
@@ -35,26 +36,42 @@ class catching(commands.Cog):
 		def check(m):
 			return m.author.id == self.client.poketwo_id
 
-		await self.client.command_channel.send("Winston #pokemon-spawn Say ?h")
+		chosen_slave = (random.choices(self.client.available_slaves, k=1))[0]
+
+		await self.client.command_channel.send(f"{chosen_slave['name']} {self.client.spawn_channel.id} Say ?h")
 		message = await self.client.wait_for('message', check=check)
 
-		self.hint = message.content.split(" ")[-1]
-		self.hint = self.hint[:-1]
-		self.hint = self.hint.replace("\\", "")
+		self.hint = message.content.split(" ")
+		self.hint = self.hint[self.hint.index("is")+1:]
+		self.hint[-1] = self.hint[-1][:-1]
+
+		for word in self.hint:
+			self.hint[self.hint.index(word)] = word.replace("\\", "")
 
 	#Find out what Pokemon it is by comparing the hint with the names of pokemon
 	async def what_pokemon(self):
 
 		self.possible_pokemon = []
+		type_of_pokemon = ""
 		first_hint = True
 
 		while True:
 
 			await self.take_hint()
+
+			#Check if the pokemon is Alolan or Galarian
+			if(len(self.hint) > 1):
+				if(len(self.hint[0]) == 6):
+					type_of_pokemon = "Alolan "
+				else:
+					type_of_pokemon = "Galarian "
+				self.hint = self.hint[1:]
+
+			self.hint = " ".join(self.hint)
 	
 			if(first_hint):
 				#Shorten the search to pokemon with the same number of letters as the hint
-				for pokemon in self.client.pokemon_in_game:
+				for pokemon, attributes in self.client.pokemon_in_game.items():
 					if(len(pokemon) == len(self.hint)):
 						self.possible_pokemon.append(pokemon)
 	
@@ -75,9 +92,11 @@ class catching(commands.Cog):
 				await self.client.spawn_channel.send(f"Found {len(self.possible_pokemon)} possible pokemon")
 				await self.client.spawn_channel.send(", ".join(self.possible_pokemon))
 				first_hint = False
+				time.sleep(2)
 				continue
 			break
-		return self.possible_pokemon[0]
+
+		return (type_of_pokemon + self.possible_pokemon[0])
 
 	#Check if the pokemon is being shiny hunted
 	async def is_being_shiny_hunted(self, name):
@@ -96,6 +115,10 @@ class catching(commands.Cog):
 
 	#Decide who catches the pokemon
 	async def who_catches(self):
+
+		#Function to check if message is from Poketwo
+		def checkP2(m):
+			return (m.author.id == self.client.poketwo_id)
 
 		#Check pokemon name with user's list of pokemon
 		uncaught = []
@@ -138,6 +161,7 @@ class catching(commands.Cog):
 				#Otherwise ask a random account to catch it
 				chosen_slave = (random.choices(self.client.available_slaves, k=1))[0]
 				await self.client.command_channel.send(f"{chosen_slave['name']} pokemon {name}")
+				await self.client.wait_for('message', check=checkP2)
 				await self.automated_account.update_list(chosen_slave['name'], chosen_slave['master'])
 
 			else:
