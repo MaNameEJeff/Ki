@@ -1,4 +1,4 @@
-#Paginated Embeds of user list
+#The menu which shows user's list of pokemon stored in the database
 
 from discord.ext import menus
 from discord import Embed

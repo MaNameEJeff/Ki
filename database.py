@@ -1,4 +1,4 @@
-#Firebase
+#Firebase initialization
 import pyrebase
 
 class database():
@@ -18,12 +18,4 @@ class database():
 		self.auth = self.firebase.auth()
 		self.db = self.firebase.database()
 		self.storage = self.firebase.storage()
-
-	#Reinitialize the authenticated users
-	def re_initialize_data_base(self):
-		try:
-			#Login the user
-			winston = self.auth.sign_in_with_email_and_password("winstonemail@winston.com", "passwordwinston")
-		except:
-			winston = self.auth.create_user_with_email_and_password("winstonemail@winston.com", "passwordwinston")
 		

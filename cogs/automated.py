@@ -25,7 +25,13 @@ class automated(commands.Cog):
 	async def check_account_status(self, ctx):
 
 		#Get the accounts that are registered in database and store their ids
-		automated_accounts = dict(self.client.data_base.db.child("automated").get().val())
+		try:
+			automated_accounts = dict(self.client.data_base.db.child("automated").get().val())
+
+		except TypeError:
+			await ctx.send("No account is registered.")
+			return
+
 		account_ids = []
 		for account in automated_accounts:
 			account_ids.append(int(account))

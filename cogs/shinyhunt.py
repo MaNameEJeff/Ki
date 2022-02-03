@@ -122,6 +122,7 @@ class shinyhunt(commands.Cog):
 			accounts = dict(self.client.data_base.db.child("automated").get().val())
 			for master, slave in accounts.items():
 				if(int(slave["id"]) == user_id):
+					streak = int(dict(self.client.data_base.db.child("automated").child(master).child("slave").child("shiny").get().val())["streak"]) + 1
 					self.client.data_base.db.child("automated").child(master).child("slave").child("shiny").update({"streak": streak})
 		else:
 			self.client.data_base.db.child("users").child(user_id).child("shiny").update({"streak": streak})

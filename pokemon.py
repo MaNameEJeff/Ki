@@ -2,6 +2,8 @@ class pokemon():
 
 	def __init__(self):
 
+		self.special_types = [ 'Alolan', 'Galarian', 'Snowy', 'Rainy', 'Sunny', 'Normal', 'Baile', 'Pom-Pom', "Pa'u", 'Sensu' ]
+
 		self.pokemon_in_game = {
 
 			#Kanto Pokemon

@@ -27,14 +27,13 @@ class catching(commands.Cog):
 		self.user_list = userlist.userlist(self.client)
 		self.hint = ""
 		self.catcher_ids = []
-		self.possible_pokemon = []
 
 	#Take a hint from PokeTwo
 	async def take_hint(self):
 
 		#Function to check if message is from Poketwo
 		def check(m):
-			return m.author.id == self.client.poketwo_id
+			return ((m.author.id == self.client.poketwo_id) and (m.channel.id == self.client.spawn_channel.id))
 
 		chosen_slave = (random.choices(self.client.available_slaves, k=1))[0]
 
@@ -51,9 +50,10 @@ class catching(commands.Cog):
 	#Find out what Pokemon it is by comparing the hint with the names of pokemon
 	async def what_pokemon(self):
 
-		self.possible_pokemon = []
-		type_of_pokemon = ""
+		possible_pokemon = []
+		type_of_pokemon = self.client.pokemon_types
 		first_hint = True
+		special_type = ""
 
 		while True:
 
@@ -61,11 +61,19 @@ class catching(commands.Cog):
 
 			#Check if the pokemon is Alolan or Galarian
 			if(len(self.hint) > 1):
-				if(len(self.hint[0]) == 6):
-					type_of_pokemon = "Alolan "
-				else:
-					type_of_pokemon = "Galarian "
+				special_type = self.hint[0]
+				letter_count = 0
+				while(letter_count < len(special_type)):
+					if(special_type[letter_count] != "_"):
+						count = 0
+						while (count < len(type_of_pokemon)):
+							if(type_of_pokemon[count][letter_count] != special_type[letter_count]):
+								type_of_pokemon.remove(type_of_pokemon[count])
+								count -= 1
+							count += 1
+					letter_count += 1
 				self.hint = self.hint[1:]
+				special_type = type_of_pokemon[0]
 
 			self.hint = " ".join(self.hint)
 	
@@ -73,30 +81,33 @@ class catching(commands.Cog):
 				#Shorten the search to pokemon with the same number of letters as the hint
 				for pokemon, attributes in self.client.pokemon_in_game.items():
 					if(len(pokemon) == len(self.hint)):
-						self.possible_pokemon.append(pokemon)
+						possible_pokemon.append(pokemon)
 	
 			#Find out what pokemon it is by comparing the letters shown in hint with the names of the pokemon
 			letter_count = 0
 			while(letter_count < len(self.hint)):
 				if(self.hint[letter_count] != "_"):
 					count = 0
-					while (count < len(self.possible_pokemon)):
-						if(self.possible_pokemon[count][letter_count] != self.hint[letter_count]):
-							self.possible_pokemon.remove(self.possible_pokemon[count])
+					while (count < len(possible_pokemon)):
+						if(possible_pokemon[count][letter_count] != self.hint[letter_count]):
+							possible_pokemon.remove(possible_pokemon[count])
 							count -= 1
 						count += 1
 				letter_count += 1
 
 			#If there's more than one possibility take another hint and try again
-			if(len(self.possible_pokemon) > 1):
-				await self.client.spawn_channel.send(f"Found {len(self.possible_pokemon)} possible pokemon")
-				await self.client.spawn_channel.send(", ".join(self.possible_pokemon))
+			if(len(possible_pokemon) > 1):
+				await self.client.spawn_channel.send(f"Found {len(possible_pokemon)} possible pokemon")
+				await self.client.spawn_channel.send(", ".join(possible_pokemon))
 				first_hint = False
-				time.sleep(2)
+				time.sleep(8)
 				continue
 			break
 
-		return (type_of_pokemon + self.possible_pokemon[0])
+		if(special_type != ""):
+			return(special_type + " " + possible_pokemon[0])
+		else:
+			return(possible_pokemon[0])
 
 	#Check if the pokemon is being shiny hunted
 	async def is_being_shiny_hunted(self, name):
@@ -154,8 +165,9 @@ class catching(commands.Cog):
 				#Check if it is a shiny hunt of an automated account
 				for master_id, master in dict(self.client.data_base.db.child("automated").get().val()).items():
 					if(name == master["slave"]["shiny"]["pokemon"]):
+						print("Shiny")
 						await self.client.command_channel.send(f"{master['slave']['name']} pokemon {name}")
-						await self.shiny_hunt.update_streak(master["slave"]["id"], True)
+						await self.shiny_hunt.update_streak(master["slave"]["id"], automated=True)
 						return
 
 				#Otherwise ask a random account to catch it
