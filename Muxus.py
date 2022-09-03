@@ -41,9 +41,7 @@ possible_typos = {
 	'n' : ['j', 'm', 'b',],
 	'm' : ['n', ',', 'k',],
 	':' : ["'", 'l', 'p'],
-	"." : [',', '/', 'l'],
-	"":[""], #For Nidoran♀ or Nidoran♂ if the typo function picks the emote it converts it to ""
-	" ": [" "] #For white spaces in the name
+	'.' : [',', '/', 'l']
 }
 
 @client.event
@@ -56,6 +54,7 @@ async def on_ready():
 
 	client.Ki_id = 790492561348886570
 	client.spam_message = "spam"
+	client.poketwo_id = 716390085896962058
 
 	client.channel_ids = {
 		"spawn": 792314109625499668,
@@ -94,7 +93,7 @@ async def on_message(message):
 				if(krenko.current_channel != client.channel_ids["spawn"]):
 					krenko.changeChannel(client.channel_ids["spawn"])
 
-				krenko.say('?c ' + pokemon_name, clear_text_field=True)
+				krenko.say(f'<@{client.poketwo_id}> c {pokemon_name}', clear_text_field=True)
 
 			elif(command[1] == 'Leave'):
 				await leave()
@@ -182,7 +181,12 @@ async def typo(pokemon_name):
 				break
 				
 		letter = pokemon_name[pos]
-		wrong_letter = random.choice(possible_typos[letter.lower()])
+
+		try:
+			wrong_letter = random.choice(possible_typos[letter.lower()])
+		except KeyError:
+			wrong_letter = ' ' #For random emojis or non alphabetic characters in the name
+
 		pokemon_name[pos] = wrong_letter
 
 	pokemon_name = ''.join(pokemon_name)
@@ -191,7 +195,7 @@ async def typo(pokemon_name):
 	if(krenko.current_channel != client.channel_ids["spawn"]):
 		krenko.changeChannel(client.channel_ids["spawn"])
 
-	krenko.say('?c ' + pokemon_name, clear_text_field=True)
+	krenko.say(f'<@{client.poketwo_id}> c {pokemon_name}', clear_text_field=True)
 	time.sleep(2)
 
 #Start a background task of asking accounts to spam

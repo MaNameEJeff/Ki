@@ -71,7 +71,7 @@ class shinyhunt(commands.Cog):
 
 		#Get shiny hunt message from user
 		while True:
-			await ctx.send(f"<@{ctx.author.id}> do ?sh")
+			await ctx.send(f"<@{ctx.author.id}> do <@{self.client.poketwo_id}> sh")
 			message = await self.client.wait_for('message', check=check)
 
 			if("?sh" in message.content):
@@ -85,7 +85,7 @@ class shinyhunt(commands.Cog):
 		for field in fields:
 
 			if(field["name"] == "Currently Hunting"):
-				if(field["value"] == "Type `?shinyhunt <pokémon>` to begin!"):
+				if(field["value"] == f"Type `<@{self.client.poketwo_id}> shinyhunt <pokémon>` to begin!"):
 					await ctx.send("It seems you currently don't have a shiny hunt...")
 					return
 				shiny_hunt_data["pokemon"] = field["value"]
@@ -116,7 +116,7 @@ class shinyhunt(commands.Cog):
 			return None
 		return(shinies)
 
-	#Updates shiny hunt streak by one
+	#Updates shiny hunt streak
 	async def update_streak(self, user_id, streak, automated=False):
 		if(automated):
 			accounts = dict(self.client.data_base.db.child("automated").get().val())

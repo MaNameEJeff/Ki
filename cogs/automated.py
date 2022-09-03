@@ -190,7 +190,7 @@ class automated(commands.Cog):
 			return m.author.id == self.client.poketwo_id
 
 		#Get shiny hunt message
-		await self.client.command_channel.send(f"{name} {self.client.spam_channel.id} Say ?sh")
+		await self.client.command_channel.send(f"{name} {self.client.spam_channel.id} Say <@{self.client.poketwo_id}> sh")
 		shiny_message = await self.client.wait_for('message', check=checkP2)
 		fields = shiny_message.embeds[0].to_dict()["fields"]
 		shiny_hunt_data = {}
@@ -213,7 +213,7 @@ class automated(commands.Cog):
 			return ((m.author.id == self.client.poketwo_id) and (m.channel.name == "spam"))
 
 		#Get the pokedex of account and get the number of pokemon
-		await self.client.command_channel.send(f"{name} {self.client.spam_channel.id} Say ?p")
+		await self.client.command_channel.send(f"{name} {self.client.spam_channel.id} Say <@{self.client.poketwo_id}> p")
 		pokedex = await self.client.wait_for('message', check=checkP2)
 		pokedex = pokedex.embeds[0].to_dict()
 		number_of_pokemon = pokedex["footer"]["text"].split(" ")[-1]
@@ -235,7 +235,7 @@ class automated(commands.Cog):
 
 			#If its the last page don't ask Winston to go to the next page
 			if(i != math.ceil(number_of_pokemon/20)-1):
-				await self.client.command_channel.send(f"{name} {self.client.spam_channel.id} Say ?n")
+				await self.client.command_channel.send(f"{name} {self.client.spam_channel.id} Say <@{self.client.poketwo_id}> n")
 				pokedex = await self.client.wait_for('message', check=checkP2)
 				try:
 					pokedex = pokedex.embeds[0].to_dict()
@@ -243,7 +243,7 @@ class automated(commands.Cog):
 
 					#If menu has become unresponsive, open another menu and skip to the current page
 					page = int(len(pokemon)/20)+1
-					await self.client.command_channel.send(f"{name} {self.client.spam_channel.id} Say ?p {page}")
+					await self.client.command_channel.send(f"{name} {self.client.spam_channel.id} Say <@{self.client.poketwo_id}> p {page}")
 					pokedex = await self.client.wait_for('message', check=checkP2)
 					pokedex = pokedex.embeds[0].to_dict()
 
@@ -306,7 +306,7 @@ class automated(commands.Cog):
 		await ctx.send("Storing the pokemon already on this account. This may take a while...")
 
 		#Reindex the pokemon first
-		await self.client.command_channel.send(f"{name} {ctx.channel.id} Say ?reindex")
+		await self.client.command_channel.send(f"{name} {ctx.channel.id} Say <@{self.client.poketwo_id}> reindex")
 		while True:
 			reindex_confirmation = await self.client.wait_for('message', check=checkP2)
 			if(reindex_confirmation.content == "Successfully reindexed all your pokémon!"):
@@ -328,7 +328,7 @@ class automated(commands.Cog):
 			return ((m.author.id == self.client.poketwo_id) and (m.channel.name == "spam"))
 
 		#Get details of the pokemon caught
-		await self.client.command_channel.send(f"{catcher} {self.client.spam_channel.id} Say ?i l")
+		await self.client.command_channel.send(f"{catcher} {self.client.spam_channel.id} Say <@{self.client.poketwo_id}> i l")
 		pokemon_info = await self.client.wait_for('message', check=checkP2)
 		pokemon_info = pokemon_info.embeds[0].to_dict()
 

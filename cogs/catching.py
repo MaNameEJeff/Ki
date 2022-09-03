@@ -37,15 +37,25 @@ class catching(commands.Cog):
 
 		chosen_slave = (random.choices(self.client.available_slaves, k=1))[0]
 
-		await self.client.command_channel.send(f"{chosen_slave['name']} {self.client.spawn_channel.id} Say ?h")
+		await self.client.command_channel.send(f"{chosen_slave['name']} {self.client.spawn_channel.id} Say <@{self.client.poketwo_id}> h")
 		message = await self.client.wait_for('message', check=check)
 
-		self.hint = message.content.split(" ")
-		self.hint = self.hint[self.hint.index("is")+1:]
-		self.hint[-1] = self.hint[-1][:-1]
+		try:
+			self.hint = message.content.split(" ")
+			self.hint = self.hint[self.hint.index("is")+1:]
+			self.hint[-1] = self.hint[-1][:-1]
 
-		for word in self.hint:
-			self.hint[self.hint.index(word)] = word.replace("\\", "")
+			for word in self.hint:
+				self.hint[self.hint.index(word)] = word.replace("\\", "")
+
+		except ValueError:
+			if("Whoa" in self.hint):
+				print("Stopped because of captcha... press Y after to continue")
+				while True:
+					test = input("Done?: ")
+					if(test.upper() == "Y"):
+						break
+				take_hint(self)
 
 	#Find out what Pokemon it is by comparing the hint with the names of pokemon
 	async def what_pokemon(self):
@@ -165,9 +175,11 @@ class catching(commands.Cog):
 				#Check if it is a shiny hunt of an automated account
 				for master_id, master in dict(self.client.data_base.db.child("automated").get().val()).items():
 					if(name == master["slave"]["shiny"]["pokemon"]):
-						print("Shiny")
 						await self.client.command_channel.send(f"{master['slave']['name']} pokemon {name}")
-						await self.shiny_hunt.update_streak(master["slave"]["id"], automated=True)
+						message = await self.client.wait_for('message', check=checkP2)
+						message = message.content
+						streak = int(message[message.index("(")+1:message.index(")")])
+						await self.shiny_hunt.update_streak(master["slave"]["id"], streak, automated=True)
 						return
 
 				#Otherwise ask a random account to catch it

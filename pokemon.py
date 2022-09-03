@@ -2,7 +2,7 @@ class pokemon():
 
 	def __init__(self):
 
-		self.special_types = [ 'Alolan', 'Galarian', 'Snowy', 'Rainy', 'Sunny', 'Normal', 'Baile', 'Pom-Pom', "Pa'u", 'Sensu' ]
+		self.special_types = [ 'Alolan', 'Galarian', 'Snowy', 'Rainy', 'Sunny', 'Normal', 'Baile', 'Pom-pom', "Pa'u", 'Sensu', 'Hisuian', 'Origin' ]
 
 		self.pokemon_in_game = {
 
@@ -919,5 +919,14 @@ class pokemon():
 			'Regidrago': ('Galar', 'Legendary'),
 			'Glastrier': ('Galar', 'Legendary'),
 			'Spectrier': ('Galar', 'Legendary'),
-			'Calyrex': ('Galar', 'Legendary')
+			'Calyrex': ('Galar', 'Legendary'),
+
+			#Hisui Pokemon
+			'Wyrdeer': ('Hisui', 'Common'),
+			'Kleavor': ('Hisui', 'Common'),
+			'Ursaluna': ('Hisui', 'Common'),
+			'Basculegion': ('Hisui', 'Common'),
+			'Sneasler': ('Hisui', 'Common'),
+			'Overqwil': ('Hisui', 'Common'),
+			'Enamorus': ('Hisui', 'Legendary')
 		}

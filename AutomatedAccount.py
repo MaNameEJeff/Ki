@@ -15,7 +15,7 @@ class AutomatedAccount():
         load_dotenv('.env')
 
         self.rate_limited = False
-        self.key_press_delay = 0.3
+        self.key_press_delay = 0.2
         self.general_path = "https://discord.com/channels/760880935557398608/"
         self.driver = webdriver.Firefox(executable_path=r'/opt/homebrew/bin/geckodriver')
 
@@ -25,8 +25,13 @@ class AutomatedAccount():
         self.driver.get(self.general_path + "792314109625499668")
         time.sleep(10)
         self.current_channel = 792314109625499668
-        print ("Browser Initialized")
-    
+        print("Browser Initialized")
+        actions.send_keys(Keys.TAB)
+        actions.send_keys(Keys.TAB)
+        actions.send_keys(Keys.RETURN)
+        actions.perform()
+        time.sleep(5)
+
         #Log onto discord
         text_field = self.driver.find_element_by_name('email')
         for character in os.getenv('EMAIL'):
@@ -50,16 +55,17 @@ class AutomatedAccount():
     
         #Look for message box
         time.sleep(3)
-        self.text_field = self.driver.find_element_by_css_selector('.slateTextArea-27tjG0')
+        self.text_field = self.driver.find_element_by_css_selector(".editor-H2NA06")
 
     #Change to specific channel in discord
     def changeChannel(self, channel_id):
         self.driver.get(self.general_path + str(channel_id))
         time.sleep(5)
         self.current_channel = int(channel_id)
+        time.sleep(2)
 
         #Look for message box
-        self.text_field = self.driver.find_element_by_css_selector('.slateTextArea-27tjG0')
+        self.text_field = self.driver.find_element_by_css_selector(".editor-H2NA06")
 
     #Add reaction to a message
     def addReaction(self, message_id, reaction):
@@ -73,7 +79,7 @@ class AutomatedAccount():
         self.click(add_reaction_button)
 
         #Search for the reaction and add it
-        self.text_field = self.driver.find_element_by_css_selector(".input-1Rv96N")
+        self.text_field = self.driver.find_element_by_class_name("input-2FSSDe")
         self.say(reaction)
 
     #Send specified message
@@ -82,21 +88,13 @@ class AutomatedAccount():
         actions = ActionChains(self.driver)
 
         #Press CTRL+'a' or CMD+'a' and hit DEL to clear the text field
-        if(clear_text_field):
-            
+        if(clear_text_field):            
             if("macOS" in platform.platform()):
-                actions.key_down(Keys.COMMAND)
-                actions.key_down('a')
-                actions.key_up(Keys.COMMAND)
-                actions.key_up('a')
+                actions.key_down(Keys.COMMAND).send_keys('a').key_up(Keys.COMMAND).send_keys(Keys.DELETE).perform()
             else:
-                actions.key_down(Keys.CONTROL)
-                actions.key_down('a')
-                actions.key_up(Keys.CONTROL)
-                actions.key_up('a')
+                actions.key_down(Keys.CONTROL).send_keys('a').key_up(Keys.CONTROL).send_keys(Keys.DELETE).perform()
 
-            actions.send_keys(Keys.DELETE)
-            actions.perform()
+            self.click(self.text_field)
 
         #Try to send message or if rate limited stop and send error
         try:
@@ -123,9 +121,9 @@ class AutomatedAccount():
         actions = ActionChains(self.driver)
 
         #Simulate mouse moment and click element
-        actions.move_to_element(avatar)
+        actions.move_to_element(element)
         actions.perform()
-        actions.click(on_element = avatar)
+        actions.click(on_element = element)
         actions.perform()
         time.sleep(2)
 

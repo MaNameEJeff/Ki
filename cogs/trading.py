@@ -67,7 +67,7 @@ class trading(commands.Cog):
 		for merchant in merchants:
 			await self.client.wares_channel.send(f"--------------------------------------------------{merchant['name']}'s Wares--------------------------------------------------")
 
-			await self.client.command_channel.send(f"{merchant['name']} {self.client.wares_channel.id} Say ?p {filters}")
+			await self.client.command_channel.send(f"{merchant['name']} {self.client.wares_channel.id} Say <@{self.client.poketwo_id}> p {filters}")
 			message = await self.client.wait_for('message', check=checkP2)
 			try:
 				number_of_pokemon = message.embeds[0].to_dict()["footer"]["text"].split(" ")[-1]
@@ -76,7 +76,7 @@ class trading(commands.Cog):
 				number_of_pages = math.ceil(number_of_pokemon/20)
 
 				for page in range(1, number_of_pages):
-					await self.client.command_channel.send(f"{merchant['name']} {self.client.wares_channel.id} Say ?n")
+					await self.client.command_channel.send(f"{merchant['name']} {self.client.wares_channel.id} Say <@{self.client.poketwo_id}> n")
 					await self.client.wait_for('message', check=checkP2)
 			except IndexError:
 				return
@@ -139,7 +139,7 @@ class trading(commands.Cog):
 		pokemon_traded = await self.add_to_trade(ctx.author, account.capitalize())
 		if(pokemon_traded == None):
 			await ctx.send("No Pokemon traded...")
-			await self.client.command_channel.send(f"{account.capitalize()} {self.client.bot_trade_channel.id} Say ?t x")
+			await self.client.command_channel.send(f"{account.capitalize()} {self.client.bot_trade_channel.id} Say <@{self.client.poketwo_id}> t x")
 			return
 		print(pokemon_traded)
 
@@ -169,7 +169,7 @@ class trading(commands.Cog):
 			return ((m.author.id == self.client.poketwo_id) and (m.channel.id == self.client.bot_trade_channel.id))
 
 		#Ask the specified account to start the trade
-		await self.client.command_channel.send(f"{account} {self.client.bot_trade_channel.id} Say ?t <@{user.id}>")
+		await self.client.command_channel.send(f"{account} {self.client.bot_trade_channel.id} Say <@{self.client.poketwo_id}> t <@{user.id}>")
 		confirm_trade_message = await self.client.wait_for('message', check=checkP2)
 
 		#Ask the automated account to react to the trade confirming it
@@ -193,14 +193,14 @@ class trading(commands.Cog):
 			return ((m.author.id == self.client.poketwo_id) and (m.channel.id == self.client.bot_trade_channel.id))
 
 		if(returning):
-			await self.client.command_channel.send(f"{account} {self.client.bot_trade_channel.id} Say ?t add {' '.join(pokemon_to_return)}")
+			await self.client.command_channel.send(f"{account} {self.client.bot_trade_channel.id} Say <@{self.client.poketwo_id}> t add {' '.join(pokemon_to_return)}")
 		else:
 			await self.client.bot_trade_channel.send(f"<@{user.id}> add the pokemon")
 			count = 0
 			
 			while True:
 				message = await self.client.wait_for('message', check=check)
-				if(("?t add" in message.content) or ("?trade add" in message.content) or (count > 4)):
+				if((f"<@{self.client.poketwo_id}> t add" in message.content) or (f"<@{self.client.poketwo_id}> trade add" in message.content) or (count > 4)):
 					break
 				count += 1
 
@@ -219,8 +219,8 @@ class trading(commands.Cog):
 #		while True:
 #			await self.client.bot_trade_channel.send(f"<@{user.id}> confirm trade")
 #			message = await self.client.wait_for('message', check=check)
-#			if(("?t c" in message.content) or ("?trade c" in message.content)):
-#				await self.client.command_channel.send("Winston #bot-trade Say ?t c")
+#			if((f"<@{self.client.poketwo_id}> t c" in message.content) or (f"<@{self.client.poketwo_id}> trade c" in message.content)):
+#				await self.client.command_channel.send(f"Winston #bot-trade Say <@{self.client.poketwo_id}> t c")
 #				break
 
 
@@ -245,7 +245,7 @@ class trading(commands.Cog):
 					for data in pokemon_data:
 						pokemon.append({"name": data[data.index("**")+2:data.rindex("**")], "level": data[data.index("•")+1:data.rindex("•")], "iv": data[data.rindex("•")+1:] + "%"})
 
-			await self.client.command_channel.send(f"{account} {self.client.bot_trade_channel.id} Say ?n")
+			await self.client.command_channel.send(f"{account} {self.client.bot_trade_channel.id} Say <@{self.client.poketwo_id}>n")
 			message = await self.client.wait_for('message', check=checkP2)
 			trade_dict = message.embeds[0].to_dict()
 
