@@ -1,6 +1,6 @@
 class pokemon():
 
-	def __init__(self):
+	def __init__(self): # POKEMON LIST
 
 		self.special_types = [ 'Alolan', 'Galarian', 'Snowy', 'Rainy', 'Sunny', 'Normal', 'Baile', 'Pom-pom', "Pa'u", 'Sensu', 'Hisuian', 'Origin' ]
 
