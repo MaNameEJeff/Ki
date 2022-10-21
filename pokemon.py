@@ -8,7 +8,7 @@ class pokemon():
 
 			#Kanto Pokemon
 
-			'Bulbasaur': ('Kanto', 'Common'),
+			'Bulbasaur': ('Kanto', 'Common'),gtycygftrcy
 			'Ivysaur': ('Kanto', 'Common'),
 			'Venusaur': ('Kanto', 'Common'),
 			'Charmander': ('Kanto', 'Common'),
